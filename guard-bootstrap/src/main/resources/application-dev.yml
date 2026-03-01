@@ -1,0 +1,24 @@
+# Development Environment Configuration
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        web: DEBUG
+        security: DEBUG
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+spring:
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
+      include-stacktrace: always
+      include-exception: true

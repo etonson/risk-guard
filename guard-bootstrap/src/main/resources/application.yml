@@ -1,0 +1,38 @@
+# Spring Boot Application Configuration
+spring:
+  application:
+    name: guard-bootstrap
+  # Active Spring Profiles
+  # The 'dev' profile automatically includes the 'db' profile.
+  profiles:
+    group:
+      dev: db
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com:
+      security: DEBUG
+      applications: DEBUG
+      controllers: DEBUG
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+      springframework:
+        security: DEBUG

@@ -1,0 +1,62 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com</groupId>
+    <artifactId>risk-guard</artifactId>
+    <version>1.0.0</version>
+  </parent>
+  <artifactId>guard-bootstrap</artifactId>
+  <packaging>jar</packaging>
+
+  <dependencies>
+
+    <!-- Entry / Interface -->
+    <dependency>
+      <groupId>com</groupId>
+      <artifactId>guard-api</artifactId>
+    </dependency>
+
+    <!-- Application / Use Case -->
+    <dependency>
+      <groupId>com</groupId>
+      <artifactId>guard-application</artifactId>
+    </dependency>
+
+    <!-- Infrastructure -->
+    <dependency>
+      <groupId>com</groupId>
+      <artifactId>guard-infrastructure</artifactId>
+    </dependency>
+
+    <!-- Security（橫切關注點） -->
+    <dependency>
+      <groupId>com</groupId>
+      <artifactId>guard-auth</artifactId>
+    </dependency>
+
+    <!-- Boot / Web -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- DB Driver -->
+
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

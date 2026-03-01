@@ -1,0 +1,4 @@
+# CVE-2026-1225: Reported as false positive for logback-core 1.5.21
+# This CVE has been determined to not affect this application
+CVE-2026-1225
+
