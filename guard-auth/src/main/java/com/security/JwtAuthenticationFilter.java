@@ -32,8 +32,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.debug("JWT Filter - shouldNotFilter check for path: {}", path);
 
         // Skip JWT filter for public endpoints that don't need any authentication attempt
-        // Note: path includes context path (/api), so we check if it ends with or contains the endpoint
-        boolean skip = path.endsWith("/auth/login") || path.endsWith("/auth/register");
+        // Public endpoints: login, register, refresh, menu (all menu routes)
+        boolean skip = path.endsWith("/api/auth/login") 
+                     || path.endsWith("/api/auth/register")
+                     || path.endsWith("/api/auth/refresh")
+                     || path.contains("/api/menu");
 
         log.debug("JWT Filter - shouldNotFilter result: {}", skip);
         return skip;

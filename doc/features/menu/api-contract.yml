@@ -1,0 +1,698 @@
+# @version 2.0
+# @description risk-guard 後端完整 API 選單契約檔案
+# @target_file .ht-ai/backend-menu-contract.yml
+# @date 2026-03-15
+# @author risk-guard-team
+# @status Active
+
+contract_info:
+  title: "Risk-Guard Backend API & Menu Contract"
+  version: "2.0"
+  purpose: "定義後端 API 介面、認證機制、選單結構等完整規範"
+  architecture: "Hexagonal Architecture with Spring Boot 4.0.0"
+  frontend_references:
+    - "src/providers/menu.ts"
+    - "src/types/menu.ts"
+    - "src/hooks/useMenuResources.ts"
+  api_documentation:
+    - "Guard API Module: guard-api"
+    - "Auth Application Service: guard-application"
+    - "Security Configuration: guard-auth"
+
+# ============================================================================
+# SECTION 1: AUTHENTICATION API ENDPOINTS
+# ============================================================================
+
+authentication_api:
+  base_path: "/api/auth"
+  description: "認證與授權相關 API 端點"
+  module_source: "guard-api / guard-application / guard-auth"
+  
+  endpoints:
+    # 登入端點
+    - endpoint_id: "auth.login"
+      name: "User Login"
+      method: "POST"
+      path: "/api/auth/login"
+      description: "使用者透過 email 或 username 和密碼進行登入"
+      authentication_required: false
+      request_contract:
+        content_type: "application/json"
+        body_schema: "LoginRequest"
+        fields:
+          email:
+            type: "string"
+            required: false
+            format: "email"
+            description: "使用者 Email (email 和 username 至少填一個)"
+          username:
+            type: "string"
+            required: false
+            description: "使用者名稱"
+          password:
+            type: "string"
+            required: true
+            minLength: 6
+            description: "使用者密碼"
+        example:
+          email: "user@example.com"
+          password: "SecurePass123!"
+      response_contract:
+        status: 200
+        content_type: "application/json"
+        body_schema: "LoginResponse"
+        fields:
+          id:
+            type: "number"
+            example: 1
+          email:
+            type: "string"
+            example: "user@example.com"
+          username:
+            type: "string"
+            example: "john_doe"
+          access_token:
+            type: "string"
+            description: "JWT Access Token (15 minutes expiry)"
+        cookies_set:
+          - name: "access_token"
+            http_only: true
+            secure: true
+            same_site: "Strict"
+            max_age: 900
+          - name: "refresh_token"
+            http_only: true
+            secure: true
+            same_site: "Strict"
+            max_age: 604800
+      error_responses:
+        - status: 400
+          description: "Invalid request or missing email/username"
+          example: '{"error": "Email or username must be provided"}'
+        - status: 401
+          description: "Invalid credentials"
+          example: '{"error": "Invalid email/password combination"}'
+        - status: 500
+          description: "Server error"
+
+    # 註冊端點
+    - endpoint_id: "auth.register"
+      name: "User Register"
+      method: "POST"
+      path: "/api/auth/register"
+      description: "新使用者帳戶註冊"
+      authentication_required: false
+      request_contract:
+        content_type: "application/json"
+        body_schema: "RegisterRequest"
+        fields:
+          email:
+            type: "string"
+            required: true
+            format: "email"
+          username:
+            type: "string"
+            required: false
+          password:
+            type: "string"
+            required: true
+            minLength: 8
+            description: "建議密碼強度: 包含大小寫、數字、特殊符號"
+        example:
+          email: "newuser@example.com"
+          password: "Secure@123"
+      response_contract:
+        status: 200
+        body_schema: "LoginResponse"
+        fields:
+          id:
+            type: "number"
+          email:
+            type: "string"
+          username:
+            type: "string"
+          access_token:
+            type: "string"
+      error_responses:
+        - status: 400
+          description: "Email already exists or invalid input"
+        - status: 500
+          description: "Registration failed"
+
+    # 刷新權杖端點
+    - endpoint_id: "auth.refresh"
+      name: "Refresh Access Token"
+      method: "POST"
+      path: "/api/auth/refresh"
+      description: "使用 refresh_token 取得新的 access_token"
+      authentication_required: false
+      cookie_dependencies:
+        - name: "refresh_token"
+          required: true
+          description: "儲存於 HttpOnly Cookie 中的刷新權杖"
+      request_contract:
+        body: null
+      response_contract:
+        status: 200
+        body_schema: "LoginResponse"
+        cookies_set:
+          - name: "access_token"
+            http_only: true
+      error_responses:
+        - status: 401
+          description: "Invalid or expired refresh_token"
+
+    # 登出端點
+    - endpoint_id: "auth.logout"
+      name: "User Logout"
+      method: "POST"
+      path: "/api/auth/logout"
+      description: "使用者登出，清除認證 Cookie"
+      authentication_required: true
+      request_contract:
+        body: null
+      response_contract:
+        status: 200
+        cookies_cleared:
+          - "access_token"
+          - "refresh_token"
+
+    # 取得使用者資訊
+    - endpoint_id: "auth.me"
+      name: "Get Current User Info"
+      method: "GET"
+      path: "/api/auth/me"
+      description: "取得目前登入使用者的資訊"
+      authentication_required: true
+      request_contract:
+        query_params: {}
+      response_contract:
+        status: 200
+        body_schema: "UserInfo"
+        fields:
+          id:
+            type: "number"
+          email:
+            type: "string"
+          username:
+            type: "string"
+      error_responses:
+        - status: 401
+          description: "Unauthorized - JWT token invalid or expired"
+
+# ============================================================================
+# SECTION 2: DYNAMIC MENU API ENDPOINTS
+# ============================================================================
+
+menu_api:
+  description: "前端側邊欄選單相關 API 端點"
+  
+endpoint_definition:
+  endpoint_id: "menu.get"
+  method: "GET"
+  path: "/api/menu"
+  dev_url: "http://localhost:8080/api/menu"
+  authentication_required: false
+  description: "取得導航選單 (公開端點 - 所有使用者可存取)"
+  auth_requirements:
+    - type: "Public"
+      details: "此端點不需要認證，所有使用者都可以存取"
+    - note: "可選: 如果提供 Bearer Token，後端可根據使用者角色回傳不同的選單內容"
+
+response_format:
+  standard: "Wrapped Object (Recommended)"
+  structure:
+    success:
+      type: "boolean"
+      description: "請求是否成功"
+    message:
+      type: "string"
+      description: "回應訊息"
+    data:
+      type: "array<MenuApiItem>"
+      description: "選單項目陣列"
+  example:
+    success: true
+    message: "Menu fetched successfully"
+    data:
+      - id: "1"
+        name: "dashboard"
+        path: "/dashboard"
+        label: "Dashboard"
+        order: 1
+      - id: "2"
+        name: "blog_management"
+        path: "/blog-management"
+        label: "Blog Management"
+        order: 2
+        children:
+          - id: "2.1"
+            name: "blog_posts"
+            path: "/blog-posts"
+            label: "Posts"
+            order: 1
+          - id: "2.2"
+            name: "categories"
+            path: "/categories"
+            label: "Categories"
+            order: 2
+  legacy_support: "Direct Array is also currently accepted by frontend"
+
+schema_definition:
+  type: "MenuApiItem"
+  description: "選單項目資料模型"
+  fields:
+    id: 
+      type: "string | number"
+      requirement: "recommended"
+      description: "唯一識別碼，用於 CRUD 操作"
+    name: 
+      type: "string"
+      requirement: "required"
+      description: "資源 Key，同層級需唯一，用於前端路由對應"
+    path: 
+      type: "string"
+      requirement: "required"
+      pattern: "^/.*"
+      description: "前端路由路徑，必須以 / 開頭"
+    label: 
+      type: "string"
+      requirement: "recommended"
+      description: "選單顯示文字，若缺少則前端回退到 name"
+    icon: 
+      type: "string"
+      requirement: "optional"
+      description: "圖示 Key 字串 (例如: 'dashboard', 'blog')"
+    order: 
+      type: "number"
+      requirement: "recommended"
+      default: 0
+      description: "排序權重，升序排列"
+    canDelete: 
+      type: "boolean"
+      requirement: "optional"
+      default: true
+      description: "是否可刪除"
+    description: 
+      type: "string"
+      requirement: "optional"
+      description: "選單項目描述"
+    children:
+      type: "array<MenuApiItem>"
+      requirement: "optional"
+      description: "子選單項目，支援多層次階層"
+    meta:
+      type: "object"
+      requirement: "optional"
+      description: "元資料物件，可包含上述所有可選欄位"
+  example:
+    id: "1"
+    name: "blog_posts"
+    path: "/blog-posts"
+    label: "Blog Posts"
+    icon: "FileText"
+    order: 1
+    canDelete: true
+    description: "Manage blog posts"
+    children: null
+
+# ============================================================================
+# SECTION 3: DATA MODELS & DTOs
+# ============================================================================
+
+data_models:
+  LoginRequest:
+    description: "登入請求資料模型"
+    source: "guard-application/src/main/java/com/applications/auth/LoginRequest.java"
+    fields:
+      email:
+        type: "String"
+        nullable: true
+      username:
+        type: "String"
+        nullable: true
+      password:
+        type: "String"
+        nullable: false
+
+  RegisterRequest:
+    description: "註冊請求資料模型"
+    source: "guard-application/src/main/java/com/applications/auth/RegisterRequest.java"
+    fields:
+      email:
+        type: "String"
+        nullable: false
+      username:
+        type: "String"
+        nullable: true
+      password:
+        type: "String"
+        nullable: false
+
+  LoginResponse:
+    description: "登入/註冊/刷新回應資料模型"
+    source: "guard-application/src/main/java/com/applications/auth/LoginResponse.java"
+    fields:
+      id:
+        type: "Long"
+      email:
+        type: "String"
+      username:
+        type: "String"
+      access_token:
+        type: "String"
+
+  UserInfo:
+    description: "使用者資訊資料模型"
+    fields:
+      id:
+        type: "Long"
+      email:
+        type: "String"
+      username:
+        type: "String"
+
+  MenuApiItem:
+    description: "選單項目資料模型"
+    fields:
+      id:
+        type: "String | Long"
+      name:
+        type: "String"
+      path:
+        type: "String"
+      label:
+        type: "String"
+      icon:
+        type: "String"
+      order:
+        type: "Integer"
+      canDelete:
+        type: "Boolean"
+      description:
+        type: "String"
+      children:
+        type: "List<MenuApiItem>"
+
+  AuthResult:
+    description: "認證結果內部模型（後端內部使用）"
+    source: "guard-application/src/main/java/com/applications/auth/AuthResult.java"
+    fields:
+      response:
+        type: "LoginResponse"
+      refreshCookie:
+        type: "String"
+      accessTokenCookie:
+        type: "String"
+
+business_rules:
+  routing:
+    - "Returned path must map to existing frontend routes to avoid 404"
+    - "Frontend auto-fixes missing leading / in paths"
+  frontend_defaults:
+    - "If label is missing, fallback to name"
+    - "If id is missing, fallback to name"
+  sorting:
+    - "Frontend sorts items by 'order' ascending"
+  authentication:
+    - "所有 API 端點除 /auth/login 和 /auth/register 外，都需要有效的 JWT Token"
+    - "JWT Token 有效期: 15 分鐘"
+    - "Refresh Token 有效期: 7 天"
+    - "Token 過期後應自動使用 refresh_token 更新"
+  password_policy:
+    - "最少 8 個字元"
+    - "建議包含大小寫字母、數字、特殊符號"
+    - "密碼使用 BCrypt 加密 (強度: 12)"
+
+security_specifications:
+  jwt:
+    algorithm: "HS256 (HMAC with SHA-256)"
+    access_token_expiry: "15 minutes"
+    refresh_token_expiry: "7 days"
+    token_location: "Authorization Header (Bearer) / HttpOnly Cookie"
+    header_format: "Authorization: Bearer {token}"
+  cookies:
+    access_token:
+      name: "access_token"
+      http_only: true
+      secure: true
+      same_site: "Strict"
+      max_age: 900
+    refresh_token:
+      name: "refresh_token"
+      http_only: true
+      secure: true
+      same_site: "Strict"
+      max_age: 604800
+  cors:
+    enabled: true
+    allowed_origins:
+      - "http://localhost:5173"
+      - "http://127.0.0.1:5173"
+    allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow_credentials: true
+    exposed_headers: ["Authorization", "Set-Cookie"]
+  rate_limiting:
+    recommendation: "登入/註冊端點應實施頻率限制"
+    suggested_limit: "5 requests per minute per IP"
+
+route_alignment:
+  supported_mappings:
+    - name: "dashboard"
+      path: "/dashboard"
+      purpose: "Main dashboard"
+    - name: "blog_management"
+      path: "/blog-management"
+      purpose: "Blog management module"
+    - name: "blog_posts"
+      path: "/blog-posts"
+      purpose: "Blog posts management"
+    - name: "categories"
+      path: "/categories"
+      purpose: "Category management"
+    - name: "menu-management"
+      path: "/menu-management"
+      purpose: "Menu settings and configuration"
+    - name: "user_management"
+      path: "/user-management"
+      purpose: "User administration"
+    - name: "settings"
+      path: "/settings"
+      purpose: "Application settings"
+
+error_handling:
+  standard_format:
+    success: false
+    message: "Error description"
+    code: "ERROR_CODE (e.g., FORBIDDEN, UNAUTHORIZED)"
+  http_status_codes:
+    200:
+      description: "OK - 請求成功"
+      example_response: '{"success": true, "message": "Success", "data": {...}}'
+    201:
+      description: "Created - 資源建立成功"
+    400:
+      description: "Bad Request - 請求格式錯誤"
+      example_response: '{"success": false, "message": "Invalid request body"}'
+    401:
+      description: "Unauthorized - 未授權或 Token 無效"
+      example_response: '{"success": false, "message": "Invalid or expired token"}'
+    403:
+      description: "Forbidden - 禁止存取"
+    404:
+      description: "Not Found - 資源不存在"
+    500:
+      description: "Internal Server Error - 伺服器錯誤"
+
+implementation_checklist:
+  authentication_endpoints:
+    - "✓ Implement POST /api/auth/login"
+    - "✓ Implement POST /api/auth/register"
+    - "✓ Implement POST /api/auth/refresh"
+    - "✓ Implement POST /api/auth/logout"
+    - "✓ Implement GET /api/auth/me"
+    - "✓ Validate credentials and generate JWT tokens"
+    - "✓ Support both email and username login"
+  menu_endpoints:
+    - "Implement GET /api/menu"
+    - "Return standardized { success, data } structure"
+    - "Ensure every item has valid name and path"
+    - "Validate path consistency with frontend routes"
+    - "Maintain stable sorting order by 'order' field"
+  security_requirements:
+    - "✓ Verify Auth compatibility (Cookie/Bearer Token)"
+    - "✓ Implement JWT token validation filter"
+    - "✓ Enable CORS for specified origins"
+    - "✓ Use BCrypt for password encryption"
+    - "✓ Set HttpOnly flags on security cookies"
+  testing:
+    - "Unit test: AuthController endpoints"
+    - "Unit test: AuthApplicationService logic"
+    - "Integration test: JWT token generation and validation"
+    - "Integration test: Menu API endpoint"
+    - "E2E test: Complete login flow"
+    - "E2E test: Token refresh flow"
+
+# ============================================================================
+# SECTION 4: ARCHITECTURE & MODULE REFERENCES
+# ============================================================================
+
+architecture_overview:
+  pattern: "Hexagonal Architecture (Ports and Adapters)"
+  layers:
+    - name: "Domain Layer"
+      module: "guard-domain"
+      responsibility: "Core business logic, Entities, Repository Interfaces"
+    - name: "Application Layer"
+      module: "guard-application"
+      responsibility: "Use Cases, Application Services, DTOs"
+      key_services:
+        - "AuthApplicationService"
+    - name: "Infrastructure Layer"
+      module: "guard-infrastructure"
+      responsibility: "Repository Implementations, Database Access"
+    - name: "API Layer"
+      module: "guard-api"
+      responsibility: "REST Controllers"
+      key_controllers:
+        - "AuthController"
+    - name: "Security Layer"
+      module: "guard-auth"
+      responsibility: "JWT, Authentication, User Details"
+      key_classes:
+        - "SecurityConfig"
+        - "JwtService"
+        - "JwtAuthenticationFilter"
+    - name: "Bootstrap Layer"
+      module: "guard-bootstrap"
+      responsibility: "Application Entry Point, Configuration"
+
+key_classes:
+  controllers:
+    - class: "com.controllers.auth.AuthController"
+      file: "guard-api/src/main/java/com/controllers/auth/AuthController.java"
+  services:
+    - class: "com.applications.auth.AuthApplicationService"
+      file: "guard-application/src/main/java/com/applications/auth/AuthApplicationService.java"
+  security:
+    - class: "com.security.SecurityConfig"
+      file: "guard-auth/src/main/java/com/security/SecurityConfig.java"
+
+# ============================================================================
+# SECTION 5: DEPLOYMENT & ENVIRONMENT CONFIGURATION
+# ============================================================================
+
+deployment:
+  environments:
+    - name: "Development"
+      database:
+        type: "PostgreSQL"
+        host: "localhost"
+        port: 5432
+        dbname: "mydatabase"
+      cors_origins:
+        - "http://localhost:5173"
+        - "http://127.0.0.1:5173"
+      debug: true
+      server_port: 8080
+      profile: "dev"
+
+    - name: "Production"
+      database:
+        type: "PostgreSQL"
+        host: "production-db-server"
+      cors_origins:
+        - "https://production-domain.com"
+      debug: false
+      server_port: 8080
+      ssl_enabled: true
+
+configuration_files:
+  - file: "guard-bootstrap/src/main/resources/application.yml"
+  - file: "guard-bootstrap/src/main/resources/application-dev.yml"
+  - file: "guard-bootstrap/src/main/resources/application-db.yml"
+  - file: "guard-bootstrap/src/main/resources/application-prod.yml"
+
+# ============================================================================
+# SECTION 6: TEST SCENARIOS & WORKFLOWS
+# ============================================================================
+
+test_scenarios:
+  - scenario_id: "auth.login_success"
+    name: "User Login - Success Flow"
+    steps:
+      - step: 1
+        action: "POST /api/auth/login"
+        body: '{"email": "test@example.com", "password": "Test123!"}'
+      - step: 2
+        expected: "HTTP 200 OK with access_token"
+      - step: 3
+        expected: "Set-Cookie headers include access_token and refresh_token"
+
+  - scenario_id: "auth.refresh_token"
+    name: "Refresh Token Flow"
+    steps:
+      - step: 1
+        action: "Login to get refresh_token"
+      - step: 2
+        action: "POST /api/auth/refresh"
+      - step: 3
+        expected: "New access_token issued"
+
+  - scenario_id: "menu.fetch_authenticated"
+    name: "Fetch Menu - Authenticated"
+    steps:
+      - step: 1
+        action: "GET /api/menu with Authorization header"
+      - step: 2
+        expected: "HTTP 200 with menu items array"
+
+# ============================================================================
+# SECTION 7: VERSION HISTORY & CHANGELOG
+# ============================================================================
+
+version_history:
+  - version: "2.0"
+    date: "2026-03-15"
+    status: "Current"
+    changes:
+      - "Complete Backend API & Menu Contract"
+      - "Comprehensive Authentication API documentation"
+      - "Security specifications (JWT, CORS, cookies)"
+      - "Architecture references and module mapping"
+
+  - version: "1.0"
+    date: "2026-02-01"
+    status: "Deprecated"
+    changes:
+      - "Initial Dynamic Sidebar Menu Backend Contract"
+
+# ============================================================================
+# SECTION 8: QUICK REFERENCE & LINKS
+# ============================================================================
+
+quick_reference:
+  authentication_flow:
+    - "1. POST /api/auth/login (email/username + password)"
+    - "2. Backend generates JWT tokens"
+    - "3. Tokens set in HttpOnly cookies"
+    - "4. Frontend uses tokens for authenticated requests"
+    - "5. POST /api/auth/refresh to update expired token"
+    - "6. POST /api/auth/logout to clear tokens"
+
+  protected_endpoint_access:
+    - "Every authenticated endpoint requires JWT token"
+    - "Send via: Authorization: Bearer {token}"
+    - "Or via HttpOnly cookie (credentials: include)"
+    - "Invalid token returns 401 Unauthorized"
+
+reference_files:
+  documentation:
+    - "/home/sixson/IdeaProjects/risk-guard/README.md"
+    - "/home/sixson/IdeaProjects/risk-guard/.ht-ai/project-context.yml"
+  
+  source_code:
+    - "guard-api/src/main/java/com/controllers/auth/AuthController.java"
+    - "guard-application/src/main/java/com/applications/auth/AuthApplicationService.java"
+    - "guard-auth/src/main/java/com/security/SecurityConfig.java"
+    - "guard-bootstrap/src/main/resources/application.yml"

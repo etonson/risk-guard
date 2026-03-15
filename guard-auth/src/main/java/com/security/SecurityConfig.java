@@ -63,9 +63,9 @@ public class SecurityConfig {
                 )
                 // 授權規則
                 .authorizeHttpRequests(auth -> auth
-                        // 公開 API
-                        .requestMatchers("/auth/login", "/auth/register").permitAll()
-                        // 其他需 JWT 認證
+                        // 公開 API (包含 /api 前綴) - 不需要認証
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/menu/**").permitAll()
+                        // 其他需 JWT 認証
                         .anyRequest().authenticated()
                 )
                 // JWT Filter 在 UsernamePasswordAuthenticationFilter 前
