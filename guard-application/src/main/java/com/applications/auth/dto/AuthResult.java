@@ -1,4 +1,4 @@
-package com.applications.auth;
+package com.applications.auth.dto;
 
 public record AuthResult(
         LoginResponse response,

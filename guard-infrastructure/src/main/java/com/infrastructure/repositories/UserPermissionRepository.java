@@ -15,7 +15,7 @@ import java.util.Set;
  * @Date: 2026/3/15
  */
 @Repository
-public interface UserPermissionRepository extends JpaRepository<UserPermission, Long> {
+public interface UserPermissionRepository extends JpaRepository<UserPermission, Long>, com.domain.user.UserPermissionRepository {
     
     /**
      * Find all permissions for a specific user

@@ -1,6 +1,12 @@
 package com.controllers.auth;
 
-import com.applications.auth.*;
+import com.applications.auth.AuthApplicationService;
+import com.applications.auth.dto.AuthResult;
+import com.applications.auth.dto.LoginRequest;
+import com.applications.auth.dto.LoginResponse;
+import com.applications.auth.dto.RegisterRequest;
+import com.applications.common.dto.ApiResponse;
+import com.applications.common.dto.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +28,7 @@ public class AuthController {
     private final AuthApplicationService authService;
 
     @PostMapping("/login")
-    public LoginResponse login(
+    public ApiResponse<LoginResponse> login(
             @RequestBody LoginRequest req,
             HttpServletResponse response
     ) {
@@ -35,11 +41,11 @@ public class AuthController {
             response.addHeader(HttpHeaders.SET_COOKIE, result.accessTokenCookie());
         }
 
-        return result.response();
+        return ApiResponse.success(result.response());
     }
 
     @PostMapping("/register")
-    public LoginResponse register(
+    public ApiResponse<LoginResponse> register(
             @RequestBody RegisterRequest req,
             HttpServletResponse response
     ) {
@@ -52,25 +58,25 @@ public class AuthController {
             response.addHeader(HttpHeaders.SET_COOKIE, result.accessTokenCookie());
         }
 
-        return result.response();
+        return ApiResponse.success(result.response());
     }
 
     @PostMapping("/logout")
-    public void logout(HttpServletResponse response) {
+    public ApiResponse<Void> logout(HttpServletResponse response) {
         List<String> cookies = authService.logout();
         for (String cookie : cookies) {
             response.addHeader(HttpHeaders.SET_COOKIE, cookie);
         }
+        return ApiResponse.success(null, "登出成功");
     }
 
     @PostMapping("/refresh")
-    public LoginResponse refresh(
+    public ApiResponse<LoginResponse> refresh(
             @CookieValue(name = "refresh_token", required = false) String refreshToken,
             HttpServletResponse response
     ) {
         if (refreshToken == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return null;
+            return ApiResponse.error(ResultCode.UNAUTHORIZED, "缺少 Refresh Token");
         }
 
         try {
@@ -83,20 +89,18 @@ public class AuthController {
                 response.addHeader(HttpHeaders.SET_COOKIE, result.accessTokenCookie());
             }
 
-            return result.response();
+            return ApiResponse.success(result.response());
         } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return null;
+            return ApiResponse.error(ResultCode.UNAUTHORIZED, "無效的 Refresh Token");
         }
     }
 
     @GetMapping("/me")
-    public LoginResponse.UserInfo me(HttpServletResponse response) {
+    public ApiResponse<LoginResponse.UserInfo> me() {
         LoginResponse.UserInfo userInfo = authService.me();
         if (userInfo == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return null;
+            return ApiResponse.error(ResultCode.UNAUTHORIZED);
         }
-        return userInfo;
+        return ApiResponse.success(userInfo);
     }
 }

@@ -1,6 +1,6 @@
 package com.controllers.menu;
 
-import com.applications.auth.ApiResponse;
+import com.applications.common.dto.ApiResponse;
 import com.applications.menu.MenuApplicationService;
 import com.domain.menu.MenuItem;
 import lombok.RequiredArgsConstructor;

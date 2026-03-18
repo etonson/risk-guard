@@ -1,6 +1,5 @@
-package com.applications.auth;
+package com.applications.auth.dto;
 
-import com.infrastructure.entities.CommonUser;
 import java.util.List;
 
 public record LoginResponse(
@@ -14,7 +13,7 @@ public record LoginResponse(
             List<String> roles
     ) {}
 
-    public static LoginResponse from(CommonUser user, String accessToken) {
+    public static LoginResponse from(com.domain.user.User user, String accessToken) {
         return new LoginResponse(
                 new UserInfo(
                         user.getId(),

@@ -15,7 +15,7 @@ import java.util.Set;
  * @Date: 2026/3/15
  */
 @Repository
-public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
+public interface UserRoleRepository extends JpaRepository<UserRole, Long>, com.domain.user.UserRoleRepository {
     
     /**
      * Find all roles for a specific user
