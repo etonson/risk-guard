@@ -40,4 +40,3 @@ public class MenuController {
         return ResponseEntity.ok(ApiResponse.success(menuData));
     }
 }
-

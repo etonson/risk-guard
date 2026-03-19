@@ -1,0 +1,161 @@
+# @version 1.0
+# @description Risk-Guard Authentication API Contract
+# @project risk-guard
+
+openapi: 3.0.3
+info:
+  title: Risk-Guard Auth API
+  description: 認證模組 API 規範，包含 JWT 登入、註冊與 Token 刷新機制。
+  version: 1.0.0
+
+servers:
+  - url: /api/auth
+    description: 認證模組基礎路徑
+
+paths:
+  /login:
+    post:
+      summary: 使用者登入
+      description: 支援 Email 或 Username 登入。成功後會核發 JWT Token 並寫入 HttpOnly Cookie。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登入成功
+          headers:
+            Set-Cookie:
+              description: 包含 access_token 與 refresh_token
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: 憑證無效
+
+  /register:
+    post:
+      summary: 使用者註冊
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: 註冊成功並自動登入
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /logout:
+    post:
+      summary: 使用者登出
+      description: 清除瀏覽器中的認證 Cookie。
+      responses:
+        '200':
+          description: 登出成功
+
+  /refresh:
+    post:
+      summary: 刷新 Access Token
+      description: 使用 HttpOnly Cookie 中的 refresh_token 獲取新的 Access Token。
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Refresh Token 無效或已過期
+
+  /me:
+    get:
+      summary: 獲取當前登入者資訊
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: 成功獲取資訊
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          description: 未認證
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+      required:
+        - password
+
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/LoginResponse'
+
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserInfo'
+        accessToken:
+          type: string
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+        name:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
