@@ -1,23 +1,22 @@
 package com.applications.auth;
 
+
 import com.applications.auth.dto.AuthResult;
 import com.applications.auth.dto.LoginRequest;
 import com.applications.auth.dto.LoginResponse;
 import com.applications.auth.dto.RegisterRequest;
+import com.applications.common.dto.ApiResponse;
 import com.domain.user.User;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * Authentication Application Service
- *
- * 業務邏輯編排層。現在它變得很輕，只負責編排流程。
- *
- * @Author: Eton.Lin
- * @Date: 2026/1/4 下午9:13
  */
 @Service
 @RequiredArgsConstructor
@@ -36,8 +35,9 @@ public class AuthApplicationService {
         return securityService.register(req);
     }
 
-    public List<String> logout() {
-        return securityService.logout();
+    public ApiResponse<Void> logout(HttpServletResponse response) {
+        securityService.logout().forEach(cookie -> response.addHeader(HttpHeaders.SET_COOKIE, cookie));
+        return ApiResponse.success(null, "登出成功");
     }
 
     public AuthResult refresh(String refreshToken) {
@@ -52,7 +52,7 @@ public class AuthApplicationService {
                     user.getId(),
                     user.getEmail(),
                     user.getUsername(),
-                    List.of("USER") // TODO: Get roles from domain user
+                    List.of("USER")
             );
         }
         

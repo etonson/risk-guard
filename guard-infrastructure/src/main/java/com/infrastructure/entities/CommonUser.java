@@ -1,5 +1,6 @@
 package com.infrastructure.entities;
 
+import com.domain.user.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Email;

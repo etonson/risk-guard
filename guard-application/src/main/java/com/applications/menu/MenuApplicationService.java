@@ -1,13 +1,12 @@
 package com.applications.menu;
 
+
 import com.applications.auth.SecurityService;
 import com.domain.menu.MenuItem;
 import com.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**

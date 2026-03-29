@@ -2,8 +2,9 @@ package com.infrastructure.adapters;
 
 import com.domain.user.User;
 import com.domain.user.UserRepository;
+
+import com.domain.user.UserStatus;
 import com.infrastructure.entities.CommonUser;
-import com.infrastructure.entities.UserStatus;
 import com.infrastructure.repositories.CommonUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -62,7 +63,7 @@ public class JpaUserRepositoryAdapter implements UserRepository {
                 .email(entity.getEmail())
                 .password(entity.getPassword())
                 .realName(entity.getRealName())
-                .status(entity.getStatus() == UserStatus.ACTIVE ? User.UserStatus.ACTIVE : User.UserStatus.DISABLED)
+                .status(entity.getStatus() == UserStatus.ACTIVE ? UserStatus.ACTIVE : UserStatus.DISABLED)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -76,7 +77,7 @@ public class JpaUserRepositoryAdapter implements UserRepository {
         entity.setEmail(user.getEmail());
         entity.setPassword(user.getPassword());
         entity.setRealName(user.getRealName());
-        entity.setStatus(user.getStatus() == User.UserStatus.ACTIVE ? UserStatus.ACTIVE : UserStatus.DISABLED);
+        entity.setStatus(user.getStatus() == UserStatus.ACTIVE ? UserStatus.ACTIVE : UserStatus.DISABLED);
         return entity;
     }
 }

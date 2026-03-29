@@ -8,6 +8,7 @@ import com.applications.auth.dto.LoginResponse;
 import com.applications.auth.dto.RegisterRequest;
 import com.applications.user.UserQueryService;
 import com.domain.user.User;
+import com.domain.user.UserStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
@@ -60,6 +61,7 @@ public class SecurityServiceImpl implements SecurityService {
         String refreshToken = jwtService.generateRefreshToken(principal);
 
         ResponseCookie refreshCookie = cookieFactory.createRefreshTokenCookie(refreshToken);
+
         ResponseCookie accessCookie = cookieFactory.createAccessTokenCookie(accessToken);
 
         LoginResponse response = LoginResponse.from(user, accessToken);
@@ -77,7 +79,7 @@ public class SecurityServiceImpl implements SecurityService {
                 .email(req.email())
                 .username(req.username() != null ? req.username() : req.email().split("@")[0])
                 .password(passwordEncoder.encode(req.password()))
-                .status(User.UserStatus.ACTIVE)
+                .status(UserStatus.ACTIVE)
                 .build();
 
         user = userQueryService.save(user);

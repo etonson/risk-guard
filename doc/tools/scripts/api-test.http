@@ -42,8 +42,10 @@ GET {{api_base}}/auth/me
 Authorization: Bearer {{auth_token}}
 Accept: application/json
 
+
 ### [4] 刷新 Access Token (Refresh)
 # 使用 Cookie 中的 refresh_token (如果有的話)
+#@no-cookie-jar
 POST {{api_base}}/auth/refresh
 Content-Type: application/json
 
