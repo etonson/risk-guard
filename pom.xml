@@ -25,6 +25,7 @@
     <modules>
         <module>guard-domain</module>
         <module>guard-infrastructure</module>
+        <module>shared-kernel</module>
         <module>guard-application</module>
         <module>guard-auth</module>
         <module>guard-api</module>
@@ -51,6 +52,11 @@
             </dependency>
 
             <!-- Internal modules -->
+            <dependency>
+                <groupId>com</groupId>
+                <artifactId>shared-kernel</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com</groupId>
                 <artifactId>guard-domain</artifactId>
