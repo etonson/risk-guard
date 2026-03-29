@@ -1,0 +1,54 @@
+### Risk-Guard API 整合測試 (IDEA HTTP Client)
+# 
+# 使用說明:
+# 1. 直接點擊請求旁的綠色執行按鈕
+# 2. 執行「Login」後，accessToken 會自動被儲存在全域變數中
+# 3. 後續請求會自動帶入該 Token
+
+@api_base = http://localhost:8080/api
+@email = test@example.com
+@password = Test123!
+
+### [1] 登入 (Login)
+# 獲取 accessToken 並寫入全域變數
+POST {{api_base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    if (response.body.data && response.body.data.accessToken) {
+        client.global.set("auth_token", response.body.data.accessToken);
+        client.log("AccessToken captured: " + client.global.get("auth_token").substring(0, 10) + "...");
+    }
+%}
+
+### [2] 獲取選單 (Get Menu)
+# 需要 Bearer Token
+GET {{api_base}}/menu
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+### [3] 獲取個人資料 (Get Me)
+# 驗證使用者身份與權限
+GET {{api_base}}/auth/me
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+### [4] 刷新 Access Token (Refresh)
+# 使用 Cookie 中的 refresh_token (如果有的話)
+POST {{api_base}}/auth/refresh
+Content-Type: application/json
+
+### [5] 登出 (Logout)
+# 清除後端會話並作廢 Token
+POST {{api_base}}/auth/logout
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json

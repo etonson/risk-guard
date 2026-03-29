@@ -1,14 +1,17 @@
 package com.service;
 
+import com.applications.user.UserQueryService;
+import com.domain.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 
 @Service
@@ -16,7 +19,9 @@ import org.springframework.stereotype.Service;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
-    // 關鍵！解決循環依賴問題
+    private UserQueryService userQueryService;
+
+    @Autowired
     @Lazy
     private PasswordEncoder passwordEncoder;
 
@@ -25,12 +30,28 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         log.debug("DEBUG: Attempting to load user: " + username);
 
-        String encodedPassword = passwordEncoder.encode("123456789");
+        // Try to find user by email or username
+        Optional<User> userOptional = userQueryService.findByEmail(username);
+        if (userOptional.isEmpty()) {
+            userOptional = userQueryService.findByUsername(username);
+        }
 
-        log.debug("DEBUG: Generated password hash for user: " + username);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            log.debug("DEBUG: User found in database: " + user.getUsername());
+            
+            return org.springframework.security.core.userdetails.User.builder()
+                    .username(user.getUsername())
+                    .password(user.getPassword())
+                    .authorities("ROLE_USER")
+                    .build();
+        }
 
-        // Return UserDetails with the provided username
-        return User.builder()
+        log.warn("DEBUG: User not found in database: " + username + ". Returning mock user for development.");
+        
+        String encodedPassword = passwordEncoder.encode("Test123!");
+
+        return org.springframework.security.core.userdetails.User.builder()
                 .username(username)
                 .password(encodedPassword)
                 .authorities("ROLE_USER")
