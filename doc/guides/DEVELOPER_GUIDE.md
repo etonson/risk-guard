@@ -1,130 +1,70 @@
 # 開發者指南 (Developer Guide)
 
-本指南旨在協助開發者快速上手並理解 `risk-guard` 專案的架構與開發流程。本專案採用 **六邊形架構 (Hexagonal Architecture)**，亦稱為 **埠與適配器架構 (Ports and Adapters Architecture)**，以確保業務邏輯的核心地位並與外部依賴解耦。
+本指南旨在協助開發者快速上手 Risk Guard 專案，理解其開發流程與標準規範。
 
-## 1. 技術堆疊 (Tech Stack)
+---
 
-*   **語言**: Java 21
-*   **框架**: Spring Boot 4.0.0
-*   **建置工具**: Maven 3.8+
-*   **資料庫**: PostgreSQL 16+
-*   **資料庫驅動**: PostgreSQL JDBC Driver 42.7.7
-*   **ORM**: Hibernate 7.1.11 / Spring Data JPA
-*   **安全性**: Spring Security, JWT (JJWT 0.12.6)
-*   **HTTP 伺服器**: Embedded Tomcat (Spring Boot)
-*   **工具**: Lombok 1.18.42
+## 🛠️ 1. 技術棧與環境要求
 
-## 2. 專案模組架構 (Project Modules)
+*   **JDK**: 21 (LTS)
+*   **Framework**: Spring Boot 4.0.0
+*   **Database**: PostgreSQL 16+
+*   **Build Tool**: Maven 3.8+
+*   **Security**: Spring Security + JWT (JJWT 0.12.6)
 
-專案被拆分為多個 Maven 模組，每個模組都有明確的職責：
+---
 
-### 核心層 (Core)
-*   **`guard-domain`**:
-    *   **職責**: 包含企業核心業務邏輯、實體 (Entities) 和 領域服務 (Domain Services)。
-    *   **依賴**: 不依賴任何其他模組 (除了 JDK 和極少數工具庫如 Lombok)。
-    *   **內容**: 定義了 Repository 的介面 (Ports)，但不包含實作。目前包含 `auth` 和 `layout` 領域。
+## 🏗️ 2. 專案模組架構
 
-*   **`guard-application`**:
-    *   **職責**: 應用程式層，負責協調領域物件來執行特定的應用程式邏輯 (Use Cases)。
-    *   **依賴**: 依賴 `guard-domain`。
-    *   **內容**: Service 類別，DTO 轉換邏輯。
+專案依據 **六邊形架構** 劃分模組，依賴關係遵循 **由外向內** 的原則。
 
-### 適配器層 (Adapters)
-*   **`guard-infrastructure`**:
-    *   **職責**: 基礎設施層，實作 `guard-domain` 定義的介面 (Driven Adapters)。
-    *   **依賴**: 依賴 `guard-domain`。
-    *   **內容**: 資料庫存取實作 (Spring Data JPA Repositories)、外部 API 客戶端、檔案系統存取等。
+1.  **`guard-domain`**: 核心層。不依賴框架。包含實體、業務規約與 Repository 介面。
+2.  **`guard-application`**: 應用層。負責 Use Case 編排與 DTO 轉換。
+3.  **`guard-infrastructure`**: 基礎設施。包含資料庫訪問與外部 API 整合。
+4.  **`guard-api`**: 表現層。負責 RESTful 端點與 Request/Response 映射。
+5.  **`guard-auth`**: 安全模組。封裝 Security 與 JWT 邏輯。
+6.  **`guard-bootstrap`**: 啟動模組。聚合所有組件並啟動專案。
 
-*   **`guard-api`**:
-    *   **職責**: 介面層，處理外部請求並呼叫應用程式邏輯 (Driving Adapters)。
-    *   **依賴**: 依賴 `guard-application` (以及間接依賴 `guard-domain`)。
-    *   **內容**: REST Controllers, Request/Response DTOs, Exception Handlers。
+---
 
-*   **`guard-auth`**:
-    *   **職責**: 處理安全性相關邏輯。
-    *   **內容**: Spring Security 設定, JWT Token 生成與驗證, UserDetailsService 實作。
+## 🚀 3. 快速啟動
 
-### 啟動層 (Bootstrap)
-*   **`guard-bootstrap`**:
-    *   **職責**: 應用程式的進入點，負責組裝所有模組並啟動 Spring Boot 應用程式。
-    *   **依賴**: 依賴所有上述模組。
-    *   **內容**: `DemoApplication` (Main class), `application.yml` 設定檔。
+### 1. 資料庫準備
+確保 PostgreSQL 服務已啟動。預設配置於 `guard-bootstrap/src/main/resources/application-db.yml`。
 
-## 3. 開發環境設定 (Setup)
-
-### 前置需求
-*   JDK 21+
-*   Maven 3.8+
-*   PostgreSQL 16+
-
-### 資料庫設定
-1.  確保 PostgreSQL 正在執行。推薦使用 Docker Compose：
-    ```bash
-    cd /home/sixson/podmans/PostgreSQLForMe
-    docker-compose up -d
-    ```
-2.  驗證連線資訊 (預設值)：
-    - 主機: localhost
-    - 埠: 5432
-    - 使用者: sa
-    - 密碼: A@t123456
-    - 資料庫: mydatabase
-3.  確認 `guard-bootstrap/src/main/resources/application-db.yml` 中的連線設定與 PostgreSQL 一致。
-
-### 建置與執行
+### 2. 編譯與執行
 在專案根目錄執行：
 
 ```bash
-# 建置整個專案
+# 清理並安裝依賴
 mvn clean install
 
-# 執行應用程式 (指向 guard-bootstrap 模組)
+# 啟動應用程式
 mvn spring-boot:run -pl guard-bootstrap
 ```
 
-應用程式預設啟動於 `http://localhost:8080`，API Context Path 為 `/api`。
+API 基礎路徑: `http://localhost:8080/api`
 
-## 4. 開發流程範例 (Development Workflow)
+---
 
-當需要開發一個新功能 (例如：新增一個「產品」管理功能) 時，建議遵循以下順序：
+## 📏 4. 編碼規範
 
-1.  **Domain Layer (`guard-domain`)**:
-    *   定義 `Product` 實體 (Entity)。
-    *   定義 `ProductRepository` 介面 (Port)。
+1.  **Lombok**: 強烈建議使用 `@Data`, `@Builder`, `@RequiredArgsConstructor`。
+2.  **依賴注入**: 務必使用 **建構子注入 (Constructor Injection)**。
+3.  **API 規範**:
+    - 所有 API 路徑必須以 `/api` 開頭。
+    - 使用 `ApiResponse<T>` 作為統一返回格式。
+4.  **異常處理**: 業務異常應轉化為帶有適當 `ResultCode` 的響應。
+5.  **日誌**: 使用 `Slf4j` (Lombok `@Slf4j`)。
 
-2.  **Infrastructure Layer (`guard-infrastructure`)**:
-    *   實作 `ProductRepository` 介面 (通常繼承 `JpaRepository`)。
-    *   設定 Hibernate 映射 (如果需要)。
+---
 
-3.  **Application Layer (`guard-application`)**:
-    *   建立 `ProductService`。
-    *   定義輸入/輸出的 DTOs。
-    *   實作業務流程，呼叫 `ProductRepository`。
+## 🧪 5. 測試與驗證
 
-4.  **Interface Layer (`guard-api`)**:
-    *   建立 `ProductController`。
-    *   定義 REST API 端點 (GET, POST 等)。
-    *   呼叫 `ProductService` 並回傳結果。
+*   **單元測試**: 置於各模組的 `src/test/java` 下。
+*   **API 測試**: 使用 `doc/tools/scripts/api-test.sh` 進行端點驗證。
+*   **手動驗證**: 建議使用 Postman 或 IntelliJ HTTP Client。
 
-## 5. 設定檔說明 (Configuration)
-
-主要設定檔位於 `guard-bootstrap/src/main/resources/`：
-
-*   `application.yml`: 通用設定。
-*   `application-dev.yml`: 開發環境特定設定 (預設啟用 `db` profile)。
-*   `application-db.yml`: 資料庫連線設定。
-
-## 6. 程式碼規範 (Coding Standards)
-
-*   **Lombok**: 廣泛使用 `@Data`, `@Builder`, `@RequiredArgsConstructor` (用於建構子注入) 來減少樣板程式碼。
-*   **Dependency Injection**: 優先使用建構子注入 (Constructor Injection)。
-*   **API Path**: 所有 API 應位於 `/api` 路徑下。
-*   **Logging**: 使用 `slf4j` (Lombok `@Slf4j`)。
-
-## 7. 常見問題 (FAQ)
-
-*   **Q: 為什麼 Controller 不直接呼叫 Repository?**
-    *   A: 為了保持層次分明和業務邏輯的封裝。Controller 負責 HTTP 協定轉換，Service 負責業務流程，Repository 負責資料存取。
-
-*   **Q: 如何處理跨模組依賴?**
-    *   A: 遵循依賴反轉原則。上層模組依賴下層模組，或者依賴介面。`guard-domain` 不應依賴任何其他模組。
+---
+**版本**: 1.1  
+**最後更新**: 2026-03-29
