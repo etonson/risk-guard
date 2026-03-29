@@ -31,6 +31,12 @@
       <artifactId>guard-infrastructure</artifactId>
     </dependency>
 
+    <!-- 共用工具 -->
+    <dependency>
+      <groupId>com</groupId>
+      <artifactId>shared-kernel</artifactId>
+    </dependency>
+
     <!-- Security（橫切關注點） -->
     <dependency>
       <groupId>com</groupId>

@@ -6,6 +6,7 @@ import com.applications.auth.dto.AuthResult;
 import com.applications.auth.dto.LoginRequest;
 import com.applications.auth.dto.LoginResponse;
 import com.applications.auth.dto.RegisterRequest;
+import com.applications.user.UserQueryService;
 import com.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +36,8 @@ public class SecurityServiceImpl implements SecurityService {
     private final JwtService jwtService;
     private final RefreshTokenCookieFactory cookieFactory;
     private final UserDetailsService userDetailsService;
+    private final UserQueryService userQueryService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public AuthResult login(LoginRequest req) {
@@ -43,12 +47,14 @@ public class SecurityServiceImpl implements SecurityService {
                 new UsernamePasswordAuthenticationToken(principal, req.password())
         );
 
-        // 這裡暫時模擬，實際應從 UserRepository 獲取並轉為 Domain User
-        User user = User.builder()
-                .id(1L)
-                .email(req.email())
-                .username(req.username() != null ? req.username() : req.email())
-                .build();
+        // Fetch user from Application Service
+        User user = userQueryService.findByEmail(principal)
+                .orElseGet(() -> userQueryService.findByUsername(principal)
+                        .orElse(User.builder()
+                                .id(1L)
+                                .email(req.email())
+                                .username(req.username() != null ? req.username() : req.email())
+                                .build()));
 
         String accessToken = jwtService.generateAccessToken(principal);
         String refreshToken = jwtService.generateRefreshToken(principal);
@@ -63,14 +69,20 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public AuthResult register(RegisterRequest req) {
-        // 模擬註冊邏輯
+        if (userQueryService.existsByEmail(req.email())) {
+            throw new RuntimeException("Email already exists: " + req.email());
+        }
+
         User user = User.builder()
-                .id(1L)
                 .email(req.email())
-                .username(req.username() != null ? req.username() : req.email())
+                .username(req.username() != null ? req.username() : req.email().split("@")[0])
+                .password(passwordEncoder.encode(req.password()))
+                .status(User.UserStatus.ACTIVE)
                 .build();
 
-        String subject = req.email();
+        user = userQueryService.save(user);
+
+        String subject = user.getEmail();
         String accessToken = jwtService.generateAccessToken(subject);
         String refreshToken = jwtService.generateRefreshToken(subject);
 
