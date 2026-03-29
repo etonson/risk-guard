@@ -39,7 +39,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
                 // CORS
@@ -49,18 +49,22 @@ public class SecurityConfig {
                 // 不使用 session
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 錯誤處理
-                .exceptionHandling(e -> e
-                        .authenticationEntryPoint((request, response, authException) -> {
+                .exceptionHandling(e -> {
+                    try {
+                        e.authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
                             response.getWriter().write("{\"error\": \"Unauthorized\"}");
-                        })
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                        });
+                        e.accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json");
                             response.getWriter().write("{\"error\": \"Forbidden\"}");
-                        })
-                )
+                        });
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                })
                 // 授權規則
                 .authorizeHttpRequests(auth -> auth
                         // 公開 API (包含 /api 前綴) - 不需要認証
