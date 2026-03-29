@@ -6,7 +6,7 @@ import com.infrastructure.entities.CommonUser;
 import com.infrastructure.entities.UserStatus;
 import com.infrastructure.repositories.CommonUserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ import java.util.Optional;
  * 
  * 負責將 Domain 層的請求轉發給 JPA Repository，並處理實體轉換。
  */
-@Component
+@Repository
 @RequiredArgsConstructor
 public class JpaUserRepositoryAdapter implements UserRepository {
 
