@@ -26,8 +26,4 @@ public class User {
     private UserStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    public enum UserStatus {
-        DISABLED, ACTIVE
-    }
 }

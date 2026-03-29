@@ -8,6 +8,7 @@
 
 專案由以下幾個模組組成：
 
+- `shared-kernel`: 包含跨模組使用的通用工具類別、驗證邏輯與基礎組件。
 - `guard-domain`: 包含核心領域模型和業務規則。
 - `guard-application`: 包含應用程式服務和使用案例，協調領域模型以執行業務邏輯。
 - `guard-infrastructure`: 負責基礎設施相關的實現，例如資料庫存取 (JPA/Hibernate)。
@@ -21,7 +22,7 @@
 - **Spring Boot 4.0.0**
 - **Maven**: 專案管理
 - **Spring Web**: 用於建立 RESTful API
-- **Spring Data JPA & Hibernate 7.1.11**: 資料庫存取
+- **Spring Data JPA & Hibernate 7.1.11.Final**: 資料庫存取
 - **Spring Security**: 處理認證和授權
 - **PostgreSQL 16+**: 資料庫
 - **JWT (JJWT 0.12.6)**: Token 認證
@@ -53,7 +54,7 @@
     ```
 
 2.  **執行應用程式**:
-    您可以透過 IDE 直接執行 `guard-bootstrap` 模組中的 `DemoApplication` 類別，或者使用以下命令：
+    您可以透過 IDE 直接執行 `guard-bootstrap` 模組中的 `GuardApplication` 類別，或者使用以下命令：
     ```bash
     mvn spring-boot:run -pl guard-bootstrap
     ```

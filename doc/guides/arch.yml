@@ -1,0 +1,122 @@
+# @version 1.1
+# @description risk-guard 專案全域開發上下文文件（優化版）
+# @project risk-guard
+
+project: /home/sixson/IdeaProjects/risk-guard
+
+# 核心技術規範
+context:
+  stack:
+    - Java 21
+    - Spring Boot 4.0.0
+    - Maven 3.8+
+    - PostgreSQL 16+
+    - Hibernate 7.1.11 / Spring Data JPA
+    - Spring Security (JWT)
+    - Lombok 1.18.42
+  architecture: "Hexagonal Architecture (Ports and Adapters)"
+  api_base_path: "/api"
+
+  database:
+    host: "localhost"
+    port: 5432
+    user: "sa"
+    password: "A@t123456"
+    dbname: "mydatabase"
+
+# 模組化職責定義 (Scope)
+scope:
+  modules:
+
+    - name: "guard-domain"
+      role: "核心業務邏輯層 (Core Domain)"
+      content: |
+        - Entities
+        - Value Objects
+        - Domain Services
+        - Repository Interfaces (Ports)
+      dependencies: []
+      rules:
+        - "禁止使用任何框架 (Spring, JPA, Lombok optional)"
+        - "只允許純 Java 邏輯"
+        - "不可依賴其他模組"
+
+    - name: "guard-application"
+      role: "應用層 (Use Cases)"
+      content: |
+        - Application Services (Use Case)
+        - DTO (Request / Response)
+        - Transaction Boundary
+      dependencies: ["guard-domain"]
+      rules:
+        - "負責業務流程 orchestration，不寫技術細節"
+        - "不直接操作 DB（透過 Repository Port）"
+
+    - name: "guard-infrastructure"
+      role: "基礎設施層 (Driven Adapters)"
+      content: |
+        - JPA Repository 實作
+        - Entity Mapping (JPA Entities)
+        - 外部系統整合（DB / API / MQ）
+        - Security Adapter（JWT / Spring Security）
+      dependencies: ["guard-domain", "guard-application"]
+      rules:
+        - "負責所有技術實作"
+        - "實作 domain 定義的 ports"
+        - "允許使用 Spring / JPA / Security"
+
+    - name: "guard-api"
+      role: "介面層 (Driving Adapters)"
+      content: |
+        - REST Controllers
+        - Request / Response DTO mapping
+        - Exception Handling
+      dependencies: ["guard-application"]
+      rules:
+        - "只負責 HTTP 轉換"
+        - "不可包含業務邏輯"
+        - "不可直接存取 infrastructure"
+
+    - name: "guard-bootstrap"
+      role: "啟動與組裝層 (Composition Root)"
+      content: |
+        - Spring Boot Application (main)
+        - Configuration (application.yml)
+        - Bean 組裝與掃描
+      dependencies: ["All Modules"]
+      rules:
+        - "禁止業務邏輯"
+        - "只負責模組組裝（Dependency Injection）"
+        - "為系統唯一允許依賴所有模組的地方"
+
+# 開發規範與意圖 (Intent)
+intent:
+  description: "建立一個高內聚、低耦合、可擴展的後端系統，支援未來模組拆分或微服務化演進。"
+
+  technical_rules:
+    - "DI_Style: 使用建構子注入 (Constructor Injection)"
+    - "Lombok: @Getter / @Builder / @RequiredArgsConstructor（避免濫用 @Data）"
+    - "Separation: 嚴格遵守依賴方向（Domain ← Application ← Infrastructure）"
+    - "Security: 採用 JWT 驗證，實作於 Infrastructure 層"
+    - "Transaction: 僅在 Application 層定義 @Transactional"
+    - "Mapping: Entity ↔ Domain ↔ DTO 映射需明確分層"
+
+# 關鍵文件路徑
+files:
+  main_entry: "guard-bootstrap/src/main/java/com/GuardApplication.java"
+  security_config: "guard-infrastructure/src/main/java/com/security/SecurityConfig.java"
+  db_config: "guard-bootstrap/src/main/resources/application-db.yml"
+  auth_controller: "guard-api/src/main/java/com/controllers/auth/AuthController.java"
+
+# 預期產出與驗證 (Output/Validation)
+output:
+  expectation:
+    - "程式碼結構符合 Maven 多模組規範"
+    - "核心業務邏輯具備單元測試（Domain / Application）"
+    - "API 符合 RESTful 並回傳 JSON"
+
+  validation_checkpoints:
+    - "mvn clean install 成功"
+    - "資料庫連線正常（application-db.yml）"
+    - "JWT 驗證流程正常（登入 / token refresh）"
+    - "Controller → Application → Domain → Infrastructure 流向正確"
