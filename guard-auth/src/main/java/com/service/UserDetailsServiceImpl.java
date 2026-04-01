@@ -5,7 +5,6 @@ import com.applications.user.UserQueryService;
 import com.domain.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,12 +18,15 @@ import java.util.Optional;
 @Slf4j
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    @Autowired
-    private UserQueryService userQueryService;
+    private final UserQueryService userQueryService;
 
-    @Autowired
     @Lazy
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserDetailsServiceImpl(UserQueryService userQueryService, PasswordEncoder passwordEncoder) {
+        this.userQueryService = userQueryService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

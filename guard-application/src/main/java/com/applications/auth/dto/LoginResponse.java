@@ -1,19 +1,14 @@
 package com.applications.auth.dto;
 
+import com.domain.user.User;
+
 import java.util.List;
 
 public record LoginResponse(
         UserInfo user,
         String accessToken
 ) {
-    public record UserInfo(
-            Long id,
-            String email,
-            String name,
-            List<String> roles
-    ) {}
-
-    public static LoginResponse from(com.domain.user.User user, String accessToken) {
+    public static LoginResponse from(User user, String accessToken) {
         return new LoginResponse(
                 new UserInfo(
                         user.getId(),
@@ -25,4 +20,3 @@ public record LoginResponse(
         );
     }
 }
-

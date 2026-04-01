@@ -2,7 +2,6 @@ package com.infrastructure.adapters;
 
 import com.domain.user.User;
 import com.domain.user.UserRepository;
-
 import com.domain.user.UserStatus;
 import com.infrastructure.entities.CommonUser;
 import com.infrastructure.repositories.CommonUserRepository;
@@ -13,7 +12,7 @@ import java.util.Optional;
 
 /**
  * User Repository Adapter
- * 
+ * <p>
  * 負責將 Domain 層的請求轉發給 JPA Repository，並處理實體轉換。
  */
 @Repository

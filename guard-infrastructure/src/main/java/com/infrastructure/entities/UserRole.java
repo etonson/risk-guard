@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 /**
  * User Role Mapping Entity
- * 
+ * <p>
  * Maps users to their assigned roles
  * 
  * @Author: Eton.Lin

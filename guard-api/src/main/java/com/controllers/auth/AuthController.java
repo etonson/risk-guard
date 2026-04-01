@@ -1,10 +1,10 @@
 package com.controllers.auth;
 
-
 import com.applications.auth.AuthApplicationService;
 import com.applications.auth.dto.LoginRequest;
 import com.applications.auth.dto.LoginResponse;
 import com.applications.auth.dto.RegisterRequest;
+import com.applications.auth.dto.UserInfo;
 import com.applications.common.dto.ApiResponse;
 import com.applications.common.dto.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,8 +45,8 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ApiResponse<LoginResponse.UserInfo> me() {
-        LoginResponse.UserInfo userInfo = authService.me();
+    public ApiResponse<UserInfo> me() {
+        UserInfo userInfo = authService.me();
         return userInfo != null ? ApiResponse.success(userInfo) : ApiResponse.error(ResultCode.UNAUTHORIZED);
     }
 }

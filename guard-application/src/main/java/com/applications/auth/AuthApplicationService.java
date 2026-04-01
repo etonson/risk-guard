@@ -3,8 +3,8 @@ package com.applications.auth;
 
 import com.applications.auth.dto.AuthResult;
 import com.applications.auth.dto.LoginRequest;
-import com.applications.auth.dto.LoginResponse;
 import com.applications.auth.dto.RegisterRequest;
+import com.applications.auth.dto.UserInfo;
 import com.applications.common.dto.ApiResponse;
 import com.domain.user.User;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,11 +44,11 @@ public class AuthApplicationService {
         return securityService.refresh(refreshToken);
     }
 
-    public LoginResponse.UserInfo me() {
+    public UserInfo me() {
         Object principal = securityService.getCurrentUser();
         
         if (principal instanceof User user) {
-            return new LoginResponse.UserInfo(
+            return new UserInfo(
                     user.getId(),
                     user.getEmail(),
                     user.getUsername(),

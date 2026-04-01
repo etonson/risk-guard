@@ -1,6 +1,5 @@
-package com.riskguard.auth.security;
+package com.security;
 
-import com.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

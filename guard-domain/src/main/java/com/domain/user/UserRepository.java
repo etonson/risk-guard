@@ -4,7 +4,7 @@ import java.util.Optional;
 
 /**
  * User Repository Port
- * 
+ * <p>
  * 定義使用者存取的合約。實作將由 Infrastructure 層提供。
  */
 public interface UserRepository {

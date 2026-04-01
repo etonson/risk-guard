@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * Menu Controller
- * 
+ * <p>
  * Handles menu-related API endpoints
  * 
  * @Author: Eton.Lin
@@ -31,7 +31,7 @@ public class MenuController {
 
     /**
      * Get the menu for the current authenticated user
-     * 
+     * <p>
      * Returns a filtered list of menu items based on the user's roles and permissions
      */
     @GetMapping

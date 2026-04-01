@@ -1,14 +1,12 @@
 package com.applications.menu;
-
 import com.domain.menu.MenuItem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import java.util.*;
 
 /**
  * Menu Config Provider
- * 
+ * <p>
  * Provides menu configuration
  * Can be extended to load from database or YAML config files
  * 

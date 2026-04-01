@@ -6,13 +6,12 @@ import com.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Permission Service
- * 
+ * <p>
  * Handles permission and role retrieval for a given user identifier
  * 
  * @Author: Eton.Lin

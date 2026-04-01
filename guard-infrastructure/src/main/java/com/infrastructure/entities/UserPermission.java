@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 /**
  * User Permission Mapping Entity
- * 
+ * <p>
  * Maps users to their assigned permissions
  * 
  * @Author: Eton.Lin

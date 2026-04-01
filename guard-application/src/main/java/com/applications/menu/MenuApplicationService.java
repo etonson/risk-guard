@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Menu Application Service
- * 
+ * <p>
  * Responsible for menu business logic and retrieval
  */
 @Service

@@ -9,7 +9,7 @@ import java.util.Optional;
 
 /**
  * User Query Service
- * 
+ * <p>
  * 應用層服務，負責讀取使用者資訊。
  * 安全模組 (guard-auth) 應透過此服務與 Domain 層互動，而不是直接操作 Repository。
  */
