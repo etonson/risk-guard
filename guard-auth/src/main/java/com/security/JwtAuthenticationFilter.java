@@ -35,8 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Public endpoints: login, register, refresh, menu (all menu routes)
         boolean skip = path.endsWith("/api/auth/login") 
                      || path.endsWith("/api/auth/register")
-                     || path.endsWith("/api/auth/refresh")
-                     || path.contains("/api/menu");
+                     || path.endsWith("/api/auth/refresh");
 
         log.debug("JWT Filter - shouldNotFilter result: {}", skip);
         return skip;
@@ -90,7 +89,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.debug("JWT Filter - Token validation failed for user: {}", userEmail);
                 }
             } catch (Exception e) {
-                // If user loading fails (e.g., database issue), continue without auth
                 log.error("JWT Filter - Failed to load user or set authentication: {}", e.getMessage());
             }
         } else {
