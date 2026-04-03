@@ -62,7 +62,8 @@ public class JpaUserRepositoryAdapter implements UserRepository {
                 .email(entity.getEmail())
                 .password(entity.getPassword())
                 .realName(entity.getRealName())
-                .status(entity.getStatus() == UserStatus.ACTIVE ? UserStatus.ACTIVE : UserStatus.DISABLED)
+                .status(
+                        entity.getStatus() == UserStatus.ACTIVE ? UserStatus.ACTIVE : UserStatus.DISABLED)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

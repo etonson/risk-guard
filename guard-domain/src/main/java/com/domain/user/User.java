@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * User Domain Entity
- * 
+ * <p>
  * 這是純淨的業務實體，不含任何 JPA 或框架註解。
  * 遵循六邊形架構，Domain 層應與外部技術細節隔離。
  */

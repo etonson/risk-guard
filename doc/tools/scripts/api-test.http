@@ -11,6 +11,7 @@
 
 ### [1] 登入 (Login)
 # 獲取 accessToken 並寫入全域變數
+# @no-cookie-jar
 POST {{api_base}}/auth/login
 Content-Type: application/json
 

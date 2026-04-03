@@ -11,6 +11,7 @@ import com.domain.user.User;
 import com.domain.user.UserStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Security Service Implementation
@@ -49,14 +51,14 @@ public class SecurityServiceImpl implements SecurityService {
         );
 
         // Fetch user from Application Service
-        User user = userQueryService.findByEmail(principal)
-                .orElseGet(() -> userQueryService.findByUsername(principal)
-                        .orElse(User.builder()
-                                .id(1L)
-                                .email(req.email())
-                                .username(req.username() != null ? req.username() : req.email())
-                                .build()));
+        User user = findUserByPrincipal(principal)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found: " + principal));
 
+        return getAuthResult(resolvePrincipal(user), user);
+    }
+
+    @NonNull
+    private AuthResult getAuthResult(String principal, User user) {
         String accessToken = jwtService.generateAccessToken(principal);
         String refreshToken = jwtService.generateRefreshToken(principal);
 
@@ -85,15 +87,7 @@ public class SecurityServiceImpl implements SecurityService {
         user = userQueryService.save(user);
 
         String subject = user.getEmail();
-        String accessToken = jwtService.generateAccessToken(subject);
-        String refreshToken = jwtService.generateRefreshToken(subject);
-
-        ResponseCookie refreshCookie = cookieFactory.createRefreshTokenCookie(refreshToken);
-        ResponseCookie accessCookie = cookieFactory.createAccessTokenCookie(accessToken);
-
-        LoginResponse response = LoginResponse.from(user, accessToken);
-
-        return new AuthResult(response, refreshCookie.toString(), accessCookie.toString());
+        return getAuthResult(subject, user);
     }
 
     @Override
@@ -106,17 +100,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public AuthResult refresh(String refreshToken) {
-        String userEmail = jwtService.extractUsername(refreshToken);
-        if (userEmail != null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+        String principal = jwtService.extractUsername(refreshToken);
+        if (principal != null) {
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(principal);
             if (jwtService.isTokenValid(refreshToken, userDetails)) {
-                String accessToken = jwtService.generateAccessToken(userEmail);
-
-                User user = User.builder()
-                        .id(1L)
-                        .email(userEmail)
-                        .username(userEmail)
-                        .build();
+                User user = findUserByPrincipal(principal)
+                        .orElseThrow(() -> new RuntimeException("User not found: " + principal));
+                String accessToken = jwtService.generateAccessToken(resolvePrincipal(user));
 
                 LoginResponse response = LoginResponse.from(user, accessToken);
                 ResponseCookie accessCookie = cookieFactory.createAccessTokenCookie(accessToken);
@@ -136,13 +126,20 @@ public class SecurityServiceImpl implements SecurityService {
 
         Object principal = auth.getPrincipal();
         if (principal instanceof UserDetails userDetails) {
-            // 實際應從 DB 獲取 User Domain Object
-            return User.builder()
-                    .id(1L)
-                    .email(userDetails.getUsername())
-                    .username(userDetails.getUsername())
-                    .build();
+            return findUserByPrincipal(userDetails.getUsername()).orElse(null);
         }
         return null;
+    }
+
+    private Optional<User> findUserByPrincipal(String principal) {
+        return userQueryService.findByEmail(principal)
+                .or(() -> userQueryService.findByUsername(principal));
+    }
+
+    private String resolvePrincipal(User user) {
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            return user.getEmail();
+        }
+        return user.getUsername();
     }
 }

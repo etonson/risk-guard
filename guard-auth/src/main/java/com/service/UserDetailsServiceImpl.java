@@ -5,11 +5,9 @@ import com.applications.user.UserQueryService;
 import com.domain.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -21,18 +19,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserQueryService userQueryService;
 
-    @Lazy
-    private final PasswordEncoder passwordEncoder;
-
-    public UserDetailsServiceImpl(UserQueryService userQueryService, PasswordEncoder passwordEncoder) {
+    public UserDetailsServiceImpl(UserQueryService userQueryService) {
         this.userQueryService = userQueryService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
+    public @NonNull UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
 
-        log.debug("DEBUG: Attempting to load user: " + username);
+        log.debug("Attempting to load user: {}", username);
 
         // Try to find user by email or username
         Optional<User> userOptional = userQueryService.findByEmail(username);
@@ -42,23 +36,23 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            log.debug("DEBUG: User found in database: " + user.getUsername());
-            
+            log.debug("User found in database: {}", user.getUsername());
+
             return org.springframework.security.core.userdetails.User.builder()
-                    .username(user.getUsername())
+                    .username(resolvePrincipal(user))
                     .password(user.getPassword())
                     .authorities("ROLE_USER")
                     .build();
         }
 
-        log.warn("DEBUG: User not found in database: " + username + ". Returning mock user for development.");
-        
-        String encodedPassword = passwordEncoder.encode("Test123!");
+        log.warn("User not found in database: {}", username);
+        throw new UsernameNotFoundException("User not found: " + username);
+    }
 
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(username)
-                .password(encodedPassword)
-                .authorities("ROLE_USER")
-                .build();
+    private String resolvePrincipal(User user) {
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            return user.getEmail();
+        }
+        return user.getUsername();
     }
 }
