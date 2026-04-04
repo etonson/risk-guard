@@ -3,6 +3,7 @@ package com.controllers.auth;
 import com.applications.auth.AuthApplicationService;
 import com.applications.auth.dto.LoginRequest;
 import com.applications.auth.dto.LoginResponse;
+import com.applications.auth.dto.RefreshTokenRequest;
 import com.applications.auth.dto.RegisterRequest;
 import com.applications.auth.dto.UserInfo;
 import com.applications.common.dto.ApiResponse;
@@ -38,10 +39,10 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ApiResponse<LoginResponse> refresh(
-            @CookieValue(name = "refresh_token") String token,
+            RefreshTokenRequest request,
             HttpServletResponse response
     ) {
-        return authService.refresh(token).writeTo(response);
+        return authService.refresh(request.token()).writeTo(response);
     }
 
     @GetMapping("/me")

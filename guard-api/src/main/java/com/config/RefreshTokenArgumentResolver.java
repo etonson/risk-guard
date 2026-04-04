@@ -1,4 +1,4 @@
-package config;
+package com.config;
 
 import com.applications.auth.dto.RefreshTokenRequest;
 import jakarta.servlet.http.Cookie;
