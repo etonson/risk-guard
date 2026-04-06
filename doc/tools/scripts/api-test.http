@@ -46,6 +46,11 @@ Accept: application/json
 
 ### [4] 刷新 Access Token (Refresh)
 # 使用 Cookie 中的 refresh_token (如果有的話)
+POST {{api_base}}/auth/refresh
+Content-Type: application/json
+
+### [4-2] 刷新 Access Token (Refresh)
+# 測試未帶cookie的情況，應該會失敗
 #@no-cookie-jar
 POST {{api_base}}/auth/refresh
 Content-Type: application/json

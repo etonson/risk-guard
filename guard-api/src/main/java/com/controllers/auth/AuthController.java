@@ -3,6 +3,7 @@ package com.controllers.auth;
 import com.applications.auth.AuthApplicationService;
 import com.applications.auth.dto.*;
 import com.applications.common.dto.ApiResponse;
+import com.applications.common.exception.UnauthorizedException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -46,12 +47,12 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<LoginResponse>> refresh(
             @RequestBody(required = false) RefreshTokenRequest request,
-            @org.springframework.web.bind.annotation.CookieValue(value = "refresh_token", required = false) String cookieToken
+            @CookieValue(value = "refresh_token", required = false) String cookieToken
     ) {
         String token = (request != null && request.token() != null) ? request.token() : cookieToken;
         
         if (token == null || token.isBlank()) {
-            throw new com.applications.common.exception.UnauthorizedException("Refresh Token 已遺失或過期");
+            throw new UnauthorizedException("Refresh Token 已遺失或過期");
         }
         
         AuthResult result = authService.refresh(token);
