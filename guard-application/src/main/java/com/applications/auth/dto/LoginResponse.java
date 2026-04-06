@@ -14,7 +14,8 @@ public record LoginResponse(
                         user.getId(),
                         user.getEmail(),
                         user.getUsername(), // Use username as name
-                        List.of("USER")
+                        user.getRoleCodes(),
+                        user.getPermissions()
                 ),
                 accessToken
         );

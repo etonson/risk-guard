@@ -5,12 +5,16 @@ import com.applications.user.UserQueryService;
 import com.domain.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Service
@@ -36,12 +40,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            log.debug("User found in database: {}", user.getUsername());
+            log.debug("User found in database: {}, roles: {}, perms: {}", 
+                    user.getUsername(), user.getRoleCodes(), user.getPermissions());
+
+            // Combine Role codes (ROLE_ prefix) and Permission codes
+            List<SimpleGrantedAuthority> authorities = Stream.concat(
+                    user.getRoleCodes().stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)),
+                    user.getPermissions().stream().map(SimpleGrantedAuthority::new)
+            ).collect(Collectors.toList());
 
             return org.springframework.security.core.userdetails.User.builder()
                     .username(resolvePrincipal(user))
                     .password(user.getPassword())
-                    .authorities("ROLE_USER")
+                    .authorities(authorities)
                     .build();
         }
 

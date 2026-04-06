@@ -1,7 +1,7 @@
 package com.applications.user;
 
 import com.domain.user.User;
-import com.domain.user.UserRepository;
+import com.domain.user.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

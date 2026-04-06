@@ -1,14 +1,17 @@
 package com.infrastructure.adapters;
 
-import com.domain.user.User;
-import com.domain.user.UserRepository;
-import com.domain.user.UserStatus;
+import com.domain.user.*;
+import com.domain.user.repositories.UserRepository;
 import com.infrastructure.entities.CommonUser;
+import com.infrastructure.entities.UserPermission;
+import com.infrastructure.entities.UserRole;
 import com.infrastructure.repositories.CommonUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * User Repository Adapter
@@ -62,8 +65,8 @@ public class JpaUserRepositoryAdapter implements UserRepository {
                 .email(entity.getEmail())
                 .password(entity.getPassword())
                 .realName(entity.getRealName())
-                .status(
-                        entity.getStatus() == UserStatus.ACTIVE ? UserStatus.ACTIVE : UserStatus.DISABLED)
+                .status(entity.getStatus())
+                .roles(mapRolesToDomain(entity.getRoles()))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -77,7 +80,38 @@ public class JpaUserRepositoryAdapter implements UserRepository {
         entity.setEmail(user.getEmail());
         entity.setPassword(user.getPassword());
         entity.setRealName(user.getRealName());
-        entity.setStatus(user.getStatus() == UserStatus.ACTIVE ? UserStatus.ACTIVE : UserStatus.DISABLED);
+        entity.setStatus(user.getStatus());
+        entity.setRoles(mapRolesFromDomain(user.getRoles()));
         return entity;
+    }
+
+    private Set<Role> mapRolesToDomain(Set<UserRole> roles) {
+        if (roles == null) return null;
+        return roles.stream().map(r -> Role.builder()
+                .code(r.getCode())
+                .name(r.getName())
+                .dataScope(r.getDataScope())
+                .permissions(r.getPermissions().stream().map(p -> Permission.builder()
+                        .code(p.getCode())
+                        .name(p.getName())
+                        .type(p.getType())
+                        .description(p.getDescription())
+                        .build()).collect(Collectors.toSet()))
+                .build()).collect(Collectors.toSet());
+    }
+
+    private Set<UserRole> mapRolesFromDomain(Set<Role> roles) {
+        if (roles == null) return null;
+        return roles.stream().map(r -> UserRole.builder()
+                .code(r.getCode())
+                .name(r.getName())
+                .dataScope(r.getDataScope())
+                .permissions(r.getPermissions().stream().map(p -> UserPermission.builder()
+                        .code(p.getCode())
+                        .name(p.getName())
+                        .type(p.getType())
+                        .description(p.getDescription())
+                        .build()).collect(Collectors.toSet()))
+                .build()).collect(Collectors.toSet());
     }
 }

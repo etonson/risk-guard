@@ -56,7 +56,8 @@ public class AuthApplicationService {
                     user.getId(),
                     user.getEmail(),
                     user.getUsername(),
-                    List.of("USER")
+                    user.getRoleCodes(),
+                    user.getPermissions()
             );
         }
         

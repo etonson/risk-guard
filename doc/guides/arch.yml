@@ -124,7 +124,7 @@ intent:
     - "Mapping: Entity ↔ Domain ↔ DTO 映射需明確分層，不可混淆"
     - "Validation: @Validated / @Valid 在 API 層邊界進行輸入驗證"
     - "Logging: 統一使用 @Slf4j，禁止 System.out / System.err"
-    - "Package Naming: 使用 com.riskguard.[api|application|domain|infrastructure|auth].*"
+    - "Package Naming: 使用 com.[controllers|applications|domain|infrastructure|security|config].*"
 
 # 關鍵文件路徑
 files:
@@ -134,7 +134,8 @@ files:
   auth_controller: "guard-api/src/main/java/com/controllers/auth/AuthController.java"
   auth_service: "guard-application/src/main/java/com/applications/auth/AuthApplicationService.java"
   user_domain: "guard-domain/src/main/java/com/domain/user/User.java"
-  exception_handler: "guard-api/src/main/java/com/controllers/common/GlobalExceptionHandler.java"
+  exception_handler: "guard-api/src/main/java/com/config/GlobalExceptionHandler.java"
+  swagger_config: "guard-api/src/main/java/com/config/OpenApiConfig.java"
 
 # 預期產出與驗證 (Output/Validation)
 output:

@@ -1,11 +1,14 @@
 package com.domain.user;
 
+import com.domain.user.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * User Domain Entity
@@ -24,6 +27,29 @@ public class User {
     private String password;
     private String realName;
     private UserStatus status;
+    private Set<Role> roles;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    /**
+     * 攤平所有角色擁有的權限代碼
+     */
+    public Set<String> getPermissions() {
+        if (roles == null) return Set.of();
+        return roles.stream()
+                .filter(r -> r.getPermissions() != null)
+                .flatMap(role -> role.getPermissions().stream())
+                .map(Permission::getCode)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * 攤平所有角色的代碼
+     */
+    public Set<String> getRoleCodes() {
+        if (roles == null) return Set.of();
+        return roles.stream()
+                .map(Role::getCode)
+                .collect(Collectors.toSet());
+    }
 }

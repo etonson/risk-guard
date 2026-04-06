@@ -44,6 +44,7 @@ mvn spring-boot:run -pl guard-bootstrap
 ```
 
 API 基礎路徑: `http://localhost:8080/api`
+Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 
 ---
 
@@ -62,7 +63,7 @@ API 基礎路徑: `http://localhost:8080/api`
 ## 🧪 5. 測試與驗證
 
 *   **單元測試**: 置於各模組的 `src/test/java` 下。
-*   **API 測試**: 使用 `doc/tools/scripts/api-test.sh` 進行端點驗證。
+*   **API 測試**: 使用 `doc/tools/scripts/test-menu-auth.sh` 進行端點驗證。
 *   **手動驗證**: 建議使用 Postman 或 IntelliJ HTTP Client。
 
 ---

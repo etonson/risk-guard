@@ -1,6 +1,7 @@
 package com.applications.auth.dto;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -12,5 +13,6 @@ public record UserInfo(
         Long id,
         String email,
         String name,
-        List<String> roles
+        Set<String> roles,
+        Set<String> permissions
 ) {}

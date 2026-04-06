@@ -1,12 +1,12 @@
 package com.applications.menu;
 
-import com.domain.user.UserPermissionRepository;
-import com.domain.user.UserRoleRepository;
-import com.domain.user.UserRepository;
+import com.domain.user.User;
+import com.domain.user.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.util.HashSet;
+
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -22,26 +22,27 @@ import java.util.Set;
 @Slf4j
 public class PermissionService {
     
-    private final UserRoleRepository userRoleRepository;
-    private final UserPermissionRepository userPermissionRepository;
     private final UserRepository userRepository;
     
     public Set<String> getCurrentUserRoles(String identifier) {
-        if (identifier == null) return new HashSet<>();
+        if (identifier == null) return Set.of();
         
-        return userRepository.findByEmail(identifier)
-                .or(() -> userRepository.findByUsername(identifier))
-                .map(user -> userRoleRepository.findRoleNamesByUserId(user.getId()))
-                .orElse(new HashSet<>());
+        return findUser(identifier)
+                .map(User::getRoleCodes)
+                .orElse(Set.of());
     }
     
     public Set<String> getCurrentUserPermissions(String identifier) {
-        if (identifier == null) return new HashSet<>();
+        if (identifier == null) return Set.of();
         
+        return findUser(identifier)
+                .map(User::getPermissions)
+                .orElse(Set.of());
+    }
+
+    private Optional<User> findUser(String identifier) {
         return userRepository.findByEmail(identifier)
-                .or(() -> userRepository.findByUsername(identifier))
-                .map(user -> userPermissionRepository.findPermissionNamesByUserId(user.getId()))
-                .orElse(new HashSet<>());
+                .or(() -> userRepository.findByUsername(identifier));
     }
     
     public boolean hasAnyRole(String identifier, Set<String> requiredRoles) {

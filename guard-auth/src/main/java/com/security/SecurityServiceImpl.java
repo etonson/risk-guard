@@ -8,7 +8,7 @@ import com.applications.auth.dto.LoginResponse;
 import com.applications.auth.dto.RegisterRequest;
 import com.applications.user.UserQueryService;
 import com.domain.user.User;
-import com.domain.user.UserStatus;
+import com.domain.user.enums.UserStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;

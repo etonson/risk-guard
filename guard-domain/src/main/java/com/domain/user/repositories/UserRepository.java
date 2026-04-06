@@ -1,4 +1,6 @@
-package com.domain.user;
+package com.domain.user.repositories;
+
+import com.domain.user.User;
 
 import java.util.Optional;
 
