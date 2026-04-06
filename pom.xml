@@ -19,9 +19,10 @@
         <hibernate.version>7.1.11.Final</hibernate.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <jakarta.servlet-api.version>6.0.0</jakarta.servlet-api.version>
-        <jjwt-api.version>0.12.6</jjwt-api.version>
+        <jjwt-api.version>0.13.0</jjwt-api.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <springdoc.version>2.8.5</springdoc.version>
+        <spring-security.version>7.0.4</spring-security.version>
     </properties>
 
     <modules>
@@ -36,6 +37,15 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Fix CVE-2026-22732 (Must be above Spring Boot BOM to override) -->
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-bom</artifactId>
+                <version>${spring-security.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
