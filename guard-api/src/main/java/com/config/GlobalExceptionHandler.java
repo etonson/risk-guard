@@ -6,6 +6,9 @@ import com.applications.common.exception.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -29,6 +32,22 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleUnauthorizedException(UnauthorizedException e) {
         log.warn("認證失敗: {}", e.getMessage());
         return ApiResponse.error(e.getResultCode(), e.getMessage());
+    }
+
+    /**
+     * 處理 Spring Security 認證異常
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiResponse<Void> handleAuthenticationException(AuthenticationException e) {
+        String message = "認證失敗";
+        if (e instanceof DisabledException) {
+            message = "帳號已被停用，請聯繫管理員";
+        } else if (e instanceof BadCredentialsException) {
+            message = "帳號或密碼錯誤";
+        }
+        log.warn("Security 認證異常: {} - {}", e.getClass().getSimpleName(), e.getMessage());
+        return ApiResponse.error(ResultCode.UNAUTHORIZED, message);
     }
 
     /**

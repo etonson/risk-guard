@@ -47,13 +47,13 @@ public class SecurityServiceImpl implements SecurityService {
 
         String identifier = InputValidator.isNotEmpty(req.email()) ? req.email() : req.username();
 
-        // 🔥 Spring Security 核心驗證：查 DB + 比密碼
+        // Spring Security 核心驗證：查 DB + 比密碼
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(identifier, req.password())
         );
 
-        // 🔥 安全地獲取 User (透過 SecurityUser Bridge)
-        if (auth != null && auth.getPrincipal() instanceof SecurityUser securityUser) {
+        // 安全地獲取 User (透過 SecurityUser Bridge)
+        if (auth.getPrincipal() instanceof SecurityUser securityUser) {
             User user = securityUser.getDomainUser();
             log.debug("User authenticated via bridge: {}", user.getUsername());
             return getAuthResult(securityUser.getUsername(), user);
@@ -130,7 +130,7 @@ public class SecurityServiceImpl implements SecurityService {
         }
 
         Object principal = auth.getPrincipal();
-        // 🔥 直接從 SecurityContext 中獲取 Domain User，完全不進 DB
+        // 直接從 SecurityContext 中獲取 Domain User，完全不進 DB
         if (principal instanceof SecurityUser securityUser) {
             return securityUser.getDomainUser();
         }

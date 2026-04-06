@@ -40,7 +40,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             log.debug("User found in database: {}, roles: {}, perms: {}", 
                     user.getUsername(), user.getRoleCodes(), user.getPermissions());
 
-            // 🔥 Bridge Security and Domain: wrap domain user into security user
+            // Bridge Security and Domain: wrap domain user into security user
             return new SecurityUser(user);
         }
 
