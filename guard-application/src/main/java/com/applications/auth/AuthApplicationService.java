@@ -1,6 +1,5 @@
 package com.applications.auth;
 
-
 import com.applications.auth.dto.AuthResult;
 import com.applications.auth.dto.LoginRequest;
 import com.applications.auth.dto.RegisterRequest;
