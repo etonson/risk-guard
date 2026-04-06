@@ -4,6 +4,9 @@ import lombok.Getter;
 
 /**
  * API Result Codes
+ *
+ * @Author: Eton.Lin
+ * @Date: 2026/3/15
  */
 @Getter
 public enum ResultCode {

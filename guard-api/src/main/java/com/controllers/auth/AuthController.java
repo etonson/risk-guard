@@ -17,6 +17,10 @@ import java.util.List;
 
 /**
  * Authentication Controller - 生產級優化版本
+ *
+ *
+ * @Author: Eton.Lin
+ * @Date: 2026/3/15
  */
 @RestController
 @RequestMapping("/auth")

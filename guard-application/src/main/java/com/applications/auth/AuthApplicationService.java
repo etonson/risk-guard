@@ -15,6 +15,10 @@ import java.util.List;
 
 /**
  * Authentication Application Service
+ *
+ *
+ * @Author: Eton.Lin
+ * @Date: 2026/3/15
  */
 @Service
 @RequiredArgsConstructor

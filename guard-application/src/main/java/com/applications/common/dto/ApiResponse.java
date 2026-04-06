@@ -6,6 +6,9 @@ import java.time.Instant;
  * Standard API Response Structure
  *
  * @param <T> Type of data
+ *
+ * @Author: Eton.Lin
+ * @Date: 2026/3/15
  */
 public record ApiResponse<T>(
         int code,

@@ -9,6 +9,9 @@ import java.util.List;
  * Security Service Port
  * <p>
  * 這是 Application 層定義的安全介面，具體實作由 guard-auth 提供。
+ *
+ * @Author: Eton.Lin
+ * @Date: 2026/3/15
  */
 public interface SecurityService {
     AuthResult login(LoginRequest req);

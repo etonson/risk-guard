@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import util.lang.InputValidator;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Security Service Implementation
@@ -46,17 +45,20 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public AuthResult login(LoginRequest req) {
 
-        String principal = InputValidator.isNotEmpty(req.email()) ? req.email() : req.username();
+        String identifier = InputValidator.isNotEmpty(req.email()) ? req.email() : req.username();
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(principal, req.password())
+        // 🔥 Spring Security 核心驗證：查 DB + 比密碼
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(identifier, req.password())
         );
 
-        // Fetch user from Application Service
-        User user = findUserByPrincipal(principal)
-                .orElseThrow(() -> new RuntimeException("Authenticated user not found: " + principal));
+        // 🔥 從驗證結果中「接住」已經查好的 User (透過 SecurityUser Bridge)
+        SecurityUser securityUser = (SecurityUser) auth.getPrincipal();
+        User user = securityUser.getDomainUser();
 
-        return getAuthResult(resolvePrincipal(user), user);
+        log.debug("User authenticated via bridge: {}", user.getUsername());
+
+        return getAuthResult(securityUser.getUsername(), user);
     }
 
     @NonNull
@@ -65,7 +67,6 @@ public class SecurityServiceImpl implements SecurityService {
         String refreshToken = jwtService.generateRefreshToken(principal);
 
         ResponseCookie refreshCookie = cookieFactory.createRefreshTokenCookie(refreshToken);
-
         ResponseCookie accessCookie = cookieFactory.createAccessTokenCookie(accessToken);
 
         LoginResponse response = LoginResponse.from(user, accessToken);
@@ -88,8 +89,8 @@ public class SecurityServiceImpl implements SecurityService {
 
         user = userQueryService.save(user);
 
-        String subject = user.getEmail();
-        return getAuthResult(subject, user);
+        // 註冊後直接使用 domain 物件產生結果，不需再查
+        return getAuthResult(user.getEmail(), user);
     }
 
     @Override
@@ -105,10 +106,10 @@ public class SecurityServiceImpl implements SecurityService {
         String principal = jwtService.extractUsername(refreshToken);
         if (principal != null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(principal);
-            if (jwtService.isTokenValid(refreshToken, userDetails)) {
-                User user = findUserByPrincipal(principal)
-                        .orElseThrow(() -> new RuntimeException("User not found: " + principal));
-                String accessToken = jwtService.generateAccessToken(resolvePrincipal(user));
+            if (jwtService.isTokenValid(refreshToken, userDetails) && userDetails instanceof SecurityUser securityUser) {
+                
+                User user = securityUser.getDomainUser();
+                String accessToken = jwtService.generateAccessToken(securityUser.getUsername());
 
                 LoginResponse response = LoginResponse.from(user, accessToken);
                 ResponseCookie accessCookie = cookieFactory.createAccessTokenCookie(accessToken);
@@ -127,21 +128,10 @@ public class SecurityServiceImpl implements SecurityService {
         }
 
         Object principal = auth.getPrincipal();
-        if (principal instanceof UserDetails userDetails) {
-            return findUserByPrincipal(userDetails.getUsername()).orElse(null);
+        // 🔥 直接從 SecurityContext 中獲取 Domain User，完全不進 DB
+        if (principal instanceof SecurityUser securityUser) {
+            return securityUser.getDomainUser();
         }
         return null;
-    }
-
-    private Optional<User> findUserByPrincipal(String principal) {
-        return userQueryService.findByEmail(principal)
-                .or(() -> userQueryService.findByUsername(principal));
-    }
-
-    private String resolvePrincipal(User user) {
-        if (user.getEmail() != null && !user.getEmail().isBlank()) {
-            return user.getEmail();
-        }
-        return user.getUsername();
     }
 }

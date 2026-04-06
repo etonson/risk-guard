@@ -15,6 +15,9 @@ import java.util.Arrays;
 /**
  * RefreshTokenArgumentResolver
  * 將 HTTP Cookie 中的 refresh_token 自動注入為 RefreshTokenRequest 富模型
+ *
+ * @Author: Eton.Lin
+ * @Date: 2026/3/15
  */
 @Component
 public class RefreshTokenArgumentResolver implements HandlerMethodArgumentResolver {

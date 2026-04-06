@@ -10,6 +10,9 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * OpenAPI (Swagger) Configuration
+ *
+ * @Author: Eton.Lin
+ * @Date: 2026/3/15
  */
 @Configuration
 public class OpenApiConfig {

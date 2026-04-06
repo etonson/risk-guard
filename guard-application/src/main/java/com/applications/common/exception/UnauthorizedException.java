@@ -5,6 +5,9 @@ import lombok.Getter;
 
 /**
  * Unauthorized Exception
+ *
+ * @Author: Eton.Lin
+ * @Date: 2026/3/15
  */
 @Getter
 public class UnauthorizedException extends RuntimeException {

@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 /**
  * Global Exception Handler
  * 將領域/應用層拋出的例外，統一包裝為 ApiResponse
+ *
+ * @Author: Eton.Lin
+ * @Date: 2026/3/15
  */
 @RestControllerAdvice
 @Slf4j
