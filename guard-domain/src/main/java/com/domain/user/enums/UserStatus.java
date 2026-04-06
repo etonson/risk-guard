@@ -1,11 +1,11 @@
 package com.domain.user.enums;
 
 /**
- *
- *
- * @Author: Eton.Lin
- * @Date: 2026/3/29 下午6:54
+ * 使用者狀態
+ * <p>
+ * 調整順序以匹配資料庫初始值 (0 = ACTIVE)
  */
 public enum UserStatus {
-    DISABLED, ACTIVE
+    ACTIVE,    // Ordinal 0
+    DISABLED   // Ordinal 1
 }
