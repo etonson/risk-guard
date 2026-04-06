@@ -40,6 +40,26 @@ public class AuthApplicationService {
     }
 
     public AuthResult refresh(String refreshToken) {
-        return securityService.refresh(refreshToken);
+        try {
+            return securityService.refresh(refreshToken);
+        } catch (Exception e) {
+            log.warn("Token refresh failed: {}", e.getMessage());
+            throw new UnauthorizedException("無效或已過期的 Refresh Token");
+        }
+    }
+
+    public UserInfo me() {
+        Object principal = securityService.getCurrentUser();
+        
+        if (principal instanceof User user) {
+            return new UserInfo(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getUsername(),
+                    List.of("USER")
+            );
+        }
+        
+        throw new UnauthorizedException("未授權或 Session 已過期");
     }
 }

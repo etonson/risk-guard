@@ -44,25 +44,24 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<LoginResponse>> refresh(@RequestBody RefreshTokenRequest request) {
-        AuthResult result = authService.refresh(request.token());
+    public ResponseEntity<ApiResponse<LoginResponse>> refresh(
+            @RequestBody(required = false) RefreshTokenRequest request,
+            @jakarta.servlet.http.CookieValue(value = "refresh_token", required = false) String cookieToken
+    ) {
+        String token = (request != null && request.token() != null) ? request.token() : cookieToken;
+        
+        if (token == null || token.isBlank()) {
+            throw new com.applications.common.exception.UnauthorizedException("Refresh Token 已遺失或過期");
+        }
+        
+        AuthResult result = authService.refresh(token);
         return createAuthResponse(result, HttpStatus.OK);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserInfo>> me(@org.springframework.security.core.annotation.AuthenticationPrincipal com.domain.user.User user) {
-        // 標準做法：直接從 Security 上下文注入 User 物件
-        if (user == null) {
-            throw new com.applications.common.exception.UnauthorizedException("未登入或 Session 已失效");
-        }
-        
-        UserInfo userInfo = new UserInfo(
-                user.getId(),
-                user.getEmail(),
-                user.getUsername(),
-                java.util.List.of("USER") // 這裡可根據 User 實體動態讀取權限
-        );
-        
+    public ResponseEntity<ApiResponse<UserInfo>> me() {
+        // 呼叫 Application Service 獲取目前登入者資訊
+        UserInfo userInfo = authService.me();
         return ResponseEntity.ok(ApiResponse.success(userInfo));
     }
 
