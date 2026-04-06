@@ -46,7 +46,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<LoginResponse>> refresh(
             @RequestBody(required = false) RefreshTokenRequest request,
-            @jakarta.servlet.http.CookieValue(value = "refresh_token", required = false) String cookieToken
+            @org.springframework.web.bind.annotation.CookieValue(value = "refresh_token", required = false) String cookieToken
     ) {
         String token = (request != null && request.token() != null) ? request.token() : cookieToken;
         
