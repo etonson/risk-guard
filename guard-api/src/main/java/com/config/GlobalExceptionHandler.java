@@ -1,12 +1,17 @@
 package com.config;
 
-
 import com.applications.common.dto.ApiResponse;
 import com.applications.common.dto.ResultCode;
 import com.applications.common.exception.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
 
 /**
  * Global Exception Handler
@@ -17,12 +22,27 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse<Void> handleUnauthorizedException(UnauthorizedException e) {
         log.warn("認證失敗: {}", e.getMessage());
         return ApiResponse.error(e.getResultCode(), e.getMessage());
     }
 
+    /**
+     * 處理 Bean Validation 失敗 (@Valid)
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleValidationException(MethodArgumentNotValidException e) {
+        String errorMessage = e.getBindingResult().getAllErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining("; "));
+        log.warn("參數校驗失敗: {}", errorMessage);
+        return ApiResponse.error(ResultCode.BAD_REQUEST, errorMessage);
+    }
+
     @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleGenericException(Exception e) {
         log.error("未預期的錯誤", e);
         return ApiResponse.error(ResultCode.INTERNAL_ERROR, "系統繁忙，請稍後再試");

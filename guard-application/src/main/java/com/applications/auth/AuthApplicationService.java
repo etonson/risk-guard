@@ -4,12 +4,10 @@ import com.applications.auth.dto.AuthResult;
 import com.applications.auth.dto.LoginRequest;
 import com.applications.auth.dto.RegisterRequest;
 import com.applications.auth.dto.UserInfo;
-import com.applications.common.dto.ApiResponse;
+import com.applications.common.exception.UnauthorizedException;
 import com.domain.user.User;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,27 +32,14 @@ public class AuthApplicationService {
         return securityService.register(req);
     }
 
-    public ApiResponse<Void> logout(HttpServletResponse response) {
-        securityService.logout().forEach(cookie -> response.addHeader(HttpHeaders.SET_COOKIE, cookie));
-        return ApiResponse.success(null, "登出成功");
+    /**
+     * Logout - 獲取需要寫入 Header 的 Cookie 列表
+     */
+    public List<String> logout() {
+        return securityService.logout();
     }
 
     public AuthResult refresh(String refreshToken) {
         return securityService.refresh(refreshToken);
-    }
-
-    public UserInfo me() {
-        Object principal = securityService.getCurrentUser();
-        
-        if (principal instanceof User user) {
-            return new UserInfo(
-                    user.getId(),
-                    user.getEmail(),
-                    user.getUsername(),
-                    List.of("USER")
-            );
-        }
-        
-        return null;
     }
 }
