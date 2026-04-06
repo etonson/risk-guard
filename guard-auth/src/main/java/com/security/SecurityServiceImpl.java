@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import util.lang.InputValidator;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,8 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public AuthResult login(LoginRequest req) {
-        String principal = (req.email() != null && !req.email().isEmpty()) ? req.email() : req.username();
+
+        String principal = InputValidator.isNotEmpty(req.email()) ? req.email() : req.username();
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(principal, req.password())

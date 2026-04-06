@@ -9,6 +9,7 @@ import com.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import util.lang.InputValidator;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class AuthApplicationService {
     private final SecurityService securityService;
 
     public AuthResult login(LoginRequest req) {
-        log.info("Attempting login for: {}", req.username() != null ? req.username() : req.email());
+        log.info("Attempting login for: {}", InputValidator.isNotEmpty(req.username()) ? req.username() : req.email());
         return securityService.login(req);
     }
 
