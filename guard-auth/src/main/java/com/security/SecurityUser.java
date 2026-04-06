@@ -2,12 +2,14 @@ package com.security;
 
 import com.domain.user.User;
 import lombok.Getter;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,11 +24,12 @@ import java.util.stream.Stream;
 public class SecurityUser implements UserDetails {
 
     @Getter
+    @NonNull
     private final User domainUser;
     private final List<SimpleGrantedAuthority> authorities;
 
-    public SecurityUser(User user) {
-        this.domainUser = user;
+    public SecurityUser(@NonNull User user) {
+        this.domainUser = Objects.requireNonNull(user, "Domain User cannot be null");
         // 集中映射規則：角色加 ROLE_ 前綴，權限點保持原樣
         this.authorities = Stream.concat(
                 user.getRoleCodes().stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)),

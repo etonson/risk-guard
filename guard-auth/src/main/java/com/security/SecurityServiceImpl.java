@@ -52,14 +52,16 @@ public class SecurityServiceImpl implements SecurityService {
                 new UsernamePasswordAuthenticationToken(identifier, req.password())
         );
 
-        // 🔥 從驗證結果中「接住」已經查好的 User (透過 SecurityUser Bridge)
-        SecurityUser securityUser = (SecurityUser) auth.getPrincipal();
-        User user = securityUser.getDomainUser();
+        // 🔥 安全地獲取 User (透過 SecurityUser Bridge)
+        if (auth != null && auth.getPrincipal() instanceof SecurityUser securityUser) {
+            User user = securityUser.getDomainUser();
+            log.debug("User authenticated via bridge: {}", user.getUsername());
+            return getAuthResult(securityUser.getUsername(), user);
+        }
 
-        log.debug("User authenticated via bridge: {}", user.getUsername());
-
-        return getAuthResult(securityUser.getUsername(), user);
+        throw new IllegalStateException("Authentication successful but principal is invalid or missing");
     }
+
 
     @NonNull
     private AuthResult getAuthResult(String principal, User user) {
